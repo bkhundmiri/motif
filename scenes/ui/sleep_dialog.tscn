@@ -1,0 +1,102 @@
+[gd_scene load_steps=2 format=3 uid="uid://dk8yam2n5p3q1"]
+
+[ext_resource type="Script" path="res://scripts/ui/sleep_dialog.gd" id="1_4k7j9"]
+
+[node name="SleepDialog" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_4k7j9")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.5)
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Sleep"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="CurrentTimeLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Current Time: Day 1 - 9:00 AM"
+horizontal_alignment = 1
+
+[node name="VSeparator" type="VSeparator" parent="Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 10)
+
+[node name="SliderContainer" type="VBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="SliderLabel" type="Label" parent="Panel/VBox/SliderContainer"]
+layout_mode = 2
+text = "Sleep Duration:"
+horizontal_alignment = 1
+
+[node name="SleepSlider" type="HSlider" parent="Panel/VBox/SliderContainer"]
+layout_mode = 2
+min_value = 0.5
+max_value = 24.0
+step = 0.5
+value = 8.0
+tick_count = 48
+ticks_on_borders = true
+
+[node name="VSeparator2" type="VSeparator" parent="Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 10)
+
+[node name="TargetTimeLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Wake up at: Day 1 - 5:00 PM"
+horizontal_alignment = 1
+
+[node name="VSeparator3" type="VSeparator" parent="Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="ButtonContainer" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="CancelButton" type="Button" parent="Panel/VBox/ButtonContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="HSeparator2" type="VSeparator" parent="Panel/VBox/ButtonContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(20, 0)
+
+[node name="SleepButton" type="Button" parent="Panel/VBox/ButtonContainer"]
+layout_mode = 2
+text = "Sleep (8 hours)"
