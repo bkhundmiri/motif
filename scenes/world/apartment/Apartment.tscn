@@ -1,0 +1,205 @@
+[gd_scene load_steps=24 format=3 uid="uid://clf6a2d4a2wqw"]
+
+[ext_resource type="Script" uid="uid://ckuhpx0u7qrmx" path="res://scenes/world/apartment/Apartment.gd" id="1_g5iuv"]
+[ext_resource type="Script" uid="uid://cxj6f5don8o4a" path="res://core/util/Interactable.gd" id="1_ov1tj"]
+[ext_resource type="PackedScene" uid="uid://dmrph5h6ecek0" path="res://scenes/ui/game_clock/ClockUI.tscn" id="3_6ogrx"]
+[ext_resource type="Script" uid="uid://ca4l4gwsj876q" path="res://scenes/ui/game_clock/ClockUI.gd" id="4_hstcl"]
+[ext_resource type="PackedScene" uid="uid://b5ak6j46yrf7q" path="res://scenes/ui/sleep_dialog/SleepDialog.tscn" id="4_x7x6m"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_g5iuv"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g5iuv"]
+albedo_color = Color(0.18039216, 0.19215687, 0.21960784, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_g5iuv"]
+size = Vector3(8, 0.2, 8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j71kb"]
+albedo_color = Color(0.2901961, 0.30980393, 0.3529412, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_j71kb"]
+size = Vector3(8, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_x7x6m"]
+size = Vector3(8, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hstcl"]
+size = Vector3(0.2, 3, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1o16m"]
+size = Vector3(0.2, 3, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6ogrx"]
+
+[sub_resource type="MeshTexture" id="MeshTexture_x7x6m"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hstcl"]
+albedo_color = Color(0.16862746, 0.18431373, 0.22745098, 1)
+emission_enabled = true
+emission_energy_multiplier = 0.2
+emission_texture = SubResource("MeshTexture_x7x6m")
+
+[sub_resource type="QuadMesh" id="QuadMesh_1o16m"]
+material = SubResource("StandardMaterial3D_hstcl")
+size = Vector2(1.8, 1.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_aown3"]
+size = Vector3(1.2, 1.2, 0.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hf766"]
+size = Vector3(1.2, 1.2, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ogrx"]
+albedo_color = Color(0.5411765, 0.56078434, 0.6039216, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hf766"]
+size = Vector3(2, 0.8, 1.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gfaec"]
+size = Vector3(2, 0.8, 1.2)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_j71kb"]
+margin = 0.0
+radius = 0.35
+height = 1.2
+
+[node name="Apartment" type="Node3D"]
+script = ExtResource("1_g5iuv")
+metadata/_edit_group_ = true
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(8, 0, 0, 0, 0.2, 0, 0, 0, 8, 0.021056175, -0.08452568, 0)
+mesh = SubResource("BoxMesh_g5iuv")
+surface_material_override/0 = SubResource("StandardMaterial3D_g5iuv")
+
+[node name="FloorBody" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FloorBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+shape = SubResource("BoxShape3D_g5iuv")
+
+[node name="Wall_N" type="MeshInstance3D" parent="."]
+transform = Transform3D(8, 0, 0, 0, 3, 0, 0, 0, 0.2, 0, 1.4, -4)
+mesh = SubResource("BoxMesh_g5iuv")
+surface_material_override/0 = SubResource("StandardMaterial3D_j71kb")
+
+[node name="Wall_N_Body" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_N_Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -4)
+shape = SubResource("BoxShape3D_j71kb")
+
+[node name="Wall_S" type="MeshInstance3D" parent="."]
+transform = Transform3D(8, 0, 0, 0, 3, 0, 0, 0, 0.2, 0, 1.4, 4)
+mesh = SubResource("BoxMesh_g5iuv")
+surface_material_override/0 = SubResource("StandardMaterial3D_j71kb")
+
+[node name="Wall_S_Body" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_S_Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 4)
+shape = SubResource("BoxShape3D_x7x6m")
+
+[node name="Wall_E" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.2, 0, 0, 0, 3, 0, 0, 0, 8, 4, 1.4, 0)
+mesh = SubResource("BoxMesh_g5iuv")
+surface_material_override/0 = SubResource("StandardMaterial3D_j71kb")
+
+[node name="Wall_E_Body" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_E_Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1.4, 0)
+shape = SubResource("BoxShape3D_hstcl")
+
+[node name="Wall_W" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.2, 0, 0, 0, 3, 0, 0, 0, 8, -4, 1.4, 0)
+mesh = SubResource("BoxMesh_g5iuv")
+surface_material_override/0 = SubResource("StandardMaterial3D_j71kb")
+
+[node name="Wall_W_Body" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_W_Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.4, 0)
+shape = SubResource("BoxShape3D_1o16m")
+
+[node name="EvidenceBoard" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -3.8)
+collision_layer = 2
+script = ExtResource("1_ov1tj")
+prompt = "Open Case Board"
+action_id = "open_board"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EvidenceBoard"]
+transform = Transform3D(1.8, 0, 0, 0, 1.2, 0, 0, 0, 0.1, 0, 0, 0)
+shape = SubResource("BoxShape3D_6ogrx")
+
+[node name="BoardMesh" type="MeshInstance3D" parent="EvidenceBoard"]
+mesh = SubResource("QuadMesh_1o16m")
+
+[node name="StashCabinet" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.6, -2)
+collision_layer = 2
+script = ExtResource("1_ov1tj")
+prompt = "Open Stash"
+action_id = "open_stash"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StashCabinet"]
+shape = SubResource("BoxShape3D_aown3")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StashCabinet"]
+mesh = SubResource("BoxMesh_hf766")
+surface_material_override/0 = SubResource("StandardMaterial3D_6ogrx")
+
+[node name="Bed" type="Area3D" parent="."]
+collision_layer = 2
+script = ExtResource("1_ov1tj")
+prompt = "Sleep"
+action_id = "sleep_bed"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bed"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.4, -2)
+shape = SubResource("BoxShape3D_hf766")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Bed"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.4, -2)
+mesh = SubResource("BoxMesh_gfaec")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 2.5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_j71kb")
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3407089, 0)
+
+[node name="Ray" type="RayCast3D" parent="Player/Camera3D"]
+collision_mask = 2
+collide_with_areas = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="PromptLabel" type="Label" parent="UI"]
+visible = false
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -23.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(0, -24)
+horizontal_alignment = 1
+
+[node name="ClockUi" parent="UI" instance=ExtResource("3_6ogrx")]
+layout_mode = 3
+anchors_preset = 1
+offset_left = -148.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 28.0
+grow_horizontal = 0
+script = ExtResource("4_hstcl")
+
+[node name="SleepDialog" parent="." instance=ExtResource("4_x7x6m")]

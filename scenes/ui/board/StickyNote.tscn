@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3 uid="uid://wxts2pfvqjtl"]
+
+[ext_resource type="Script" uid="uid://cyoucdwfq6wbg" path="res://scenes/ui/board/StickyNote.gd" id="1"]
+[ext_resource type="Theme" uid="uid://cr0rfif15yltt" path="res://ui/theme/MotifTheme.tres" id="1_3il1f"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2c5v2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_quiv0"]
+
+[node name="StickyNote" type="GraphNode"]
+mouse_filter = 1
+theme = ExtResource("1_3il1f")
+theme_override_styles/titlebar = SubResource("StyleBoxEmpty_2c5v2")
+theme_override_styles/titlebar_selected = SubResource("StyleBoxEmpty_quiv0")
+draggable = false
+slot/0/left_enabled = true
+slot/0/left_type = 0
+slot/0/left_color = Color(1, 1, 1, 1)
+slot/0/left_icon = null
+slot/0/right_enabled = false
+slot/0/right_type = 0
+slot/0/right_color = Color(1, 1, 1, 1)
+slot/0/right_icon = null
+slot/0/draw_stylebox = true
+slot/1/left_enabled = false
+slot/1/left_type = 0
+slot/1/left_color = Color(1, 1, 1, 1)
+slot/1/left_icon = null
+slot/1/right_enabled = false
+slot/1/right_type = 0
+slot/1/right_color = Color(1, 1, 1, 1)
+slot/1/right_icon = null
+slot/1/draw_stylebox = true
+script = ExtResource("1")
+
+[node name="CloseBtn" type="Button" parent="."]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(0.075177364, 0.07484191, 0.093546025, 1)
+text = "x"
+flat = true
+
+[node name="Text" type="TextEdit" parent="."]
+custom_minimum_size = Vector2(220, 140)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+placeholder_text = "Write a note…"
+wrap_mode = 1
+scroll_fit_content_height = true

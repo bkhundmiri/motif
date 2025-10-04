@@ -1,0 +1,6 @@
+[
+  { "type": "theft",    "severity": 1, "zone_mask": ["residential","commercial"] },
+  { "type": "burglary", "severity": 2, "zone_mask": ["residential"] },
+  { "type": "assault",  "severity": 3, "zone_mask": ["commercial","industrial"] },
+  { "type": "murder",   "severity": 4, "zone_mask": ["residential","industrial","commercial"] }
+]

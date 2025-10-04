@@ -1,0 +1,11 @@
+{
+  "min_minutiae": 25,
+  "max_minutiae": 50,
+  "surface_quality": {
+    "metal": 0.9,
+    "glass": 0.95,
+    "wood": 0.6,
+    "fabric": 0.25,
+    "plastic": 0.8
+  }
+}

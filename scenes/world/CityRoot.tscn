@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bsufvljqrw23c"]
+
+[ext_resource type="Script" uid="uid://cx4v3v1h4wwpa" path="res://scenes/world/CityRoot.gd" id="1_sohkt"]
+
+[node name="CityRoot" type="Node"]
+script = ExtResource("1_sohkt")
