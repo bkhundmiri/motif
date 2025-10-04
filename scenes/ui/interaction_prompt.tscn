@@ -1,0 +1,45 @@
+[gd_scene load_steps=3 format=3 uid="uid://bm7x4oap2q5k8"]
+
+[ext_resource type="Script" path="res://scripts/ui/interaction_prompt.gd" id="1_6j9k4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0, 0, 0, 0.7)
+corner_radius_top_left = 50
+corner_radius_top_right = 50
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 5
+
+[node name="InteractionPrompt" type="Control"]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -100.0
+offset_right = 150.0
+offset_bottom = -20.0
+script = ExtResource("1_6j9k4")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="PromptLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 15.0
+offset_right = -10.0
+offset_bottom = -15.0
+text = "Press E to Interact"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://c4m8yan2p1q5r"]
+
+[ext_resource type="PackedScene" uid="uid://bnrbm8w21ns64" path="res://scenes/environments/apartment.tscn" id="1_2k7m9"]
+[ext_resource type="PackedScene" uid="uid://blax7m3n4p2q8" path="res://scenes/ui/time_ui.tscn" id="2_7n8m1"]
+
+[node name="Main" type="Node3D"]
+
+[node name="Apartment" parent="." instance=ExtResource("1_2k7m9")]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="TimeUI" parent="UI" instance=ExtResource("2_7n8m1")]
+grow_horizontal = 0
