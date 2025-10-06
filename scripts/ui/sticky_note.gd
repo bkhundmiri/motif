@@ -8,16 +8,27 @@ class_name StickyNote
 signal note_moved(note: StickyNote, new_position: Vector2)
 signal note_deleted(note: StickyNote)
 signal note_edited(note: StickyNote, new_text: String)
+signal connection_requested(note: StickyNote)
+signal connection_target_selected(note: StickyNote)
+signal text_edit_started()
+signal text_edit_finished()
 
 # UI References
 @onready var background: Panel = $Background
 @onready var text_edit: TextEdit = $Background/TextEdit
 @onready var delete_button: Button = $Background/DeleteButton
 
+# Context menu
+var context_menu: PopupMenu
+
 # Properties
 var note_id: String = ""
 var is_dragging: bool = false
 var drag_offset: Vector2
+
+# Connection system
+var connected_notes: Array[StickyNote] = []
+var anchor_points: Array[Vector2] = []
 
 # Note styling
 var note_colors: Array[Color] = [
@@ -32,7 +43,9 @@ var current_color_index: int = 0
 func _ready():
 	# Set up the sticky note
 	_setup_note()
+	_setup_context_menu()
 	_connect_signals()
+	_calculate_anchor_points()
 
 func _setup_note():
 	"""Initialize the sticky note appearance and behavior"""
@@ -46,13 +59,47 @@ func _setup_note():
 	# Set initial color
 	_update_note_color()
 
+func _setup_context_menu():
+	"""Set up the right-click context menu"""
+	context_menu = PopupMenu.new()
+	context_menu.add_item("Delete Note", 0)
+	context_menu.add_item("Clear Note", 1)
+	context_menu.add_item("Create Connection", 2)
+	context_menu.connect("id_pressed", _on_context_menu_selected)
+	add_child(context_menu)
+
+func _calculate_anchor_points():
+	"""Calculate anchor points on the middle of each side"""
+	anchor_points.clear()
+	var note_size = size
+	var half_width = note_size.x / 2.0
+	var half_height = note_size.y / 2.0
+	
+	# Top, Right, Bottom, Left
+	anchor_points.append(Vector2(half_width, 0))  # Top
+	anchor_points.append(Vector2(note_size.x, half_height))  # Right
+	anchor_points.append(Vector2(half_width, note_size.y))  # Bottom
+	anchor_points.append(Vector2(0, half_height))  # Left
+
 func _connect_signals():
 	"""Connect internal signals"""
 	text_edit.connect("text_changed", _on_text_changed)
+	text_edit.connect("focus_entered", _on_text_edit_focus_entered)
+	text_edit.connect("focus_exited", _on_text_edit_focus_exited)
 	delete_button.connect("pressed", _on_delete_pressed)
 	
 	# Connect background input for dragging
 	background.connect("gui_input", _on_background_input)
+
+func _on_context_menu_selected(id: int):
+	"""Handle context menu selection"""
+	match id:
+		0:  # Delete Note
+			emit_signal("note_deleted", self)
+		1:  # Clear Note
+			set_note_text("")
+		2:  # Create Connection
+			emit_signal("connection_requested", self)
 
 func _update_note_color():
 	"""Update the note's background color"""
@@ -75,6 +122,12 @@ func _gui_input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
+				# Check if this is a connection target selection
+				var case_board = _find_case_board()
+				if case_board and case_board.has_method("is_connecting") and case_board.is_connecting():
+					emit_signal("connection_target_selected", self)
+					return
+				
 				# Start dragging - store the offset from mouse to note position
 				is_dragging = true
 				drag_offset = event.position  # Local offset within the note
@@ -84,6 +137,10 @@ func _gui_input(event):
 				if is_dragging:
 					is_dragging = false
 					emit_signal("note_moved", self, position)
+		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			# Show context menu
+			context_menu.position = get_global_mouse_position()
+			context_menu.popup()
 	
 	elif event is InputEventMouseMotion and is_dragging:
 		# Handle dragging using global mouse position and coordinate transformation
@@ -169,6 +226,53 @@ func get_save_data() -> Dictionary:
 		"position": {"x": canvas_position.x, "y": canvas_position.y},  # Save as dictionary for JSON compatibility
 		"color_index": current_color_index
 	}
+
+func get_closest_anchor_point(target_position: Vector2) -> Vector2:
+	"""Get the anchor point closest to the target position"""
+	var note_pos = position
+	var best_anchor = anchor_points[0]
+	var best_distance = INF
+	
+	for anchor in anchor_points:
+		var world_anchor = note_pos + anchor
+		var distance = world_anchor.distance_to(target_position)
+		if distance < best_distance:
+			best_distance = distance
+			best_anchor = anchor
+	
+	return note_pos + best_anchor
+
+func get_global_anchor_points() -> Array[Vector2]:
+	"""Get all anchor points in global coordinates"""
+	var global_anchors: Array[Vector2] = []
+	var note_pos = position
+	
+	for anchor in anchor_points:
+		global_anchors.append(note_pos + anchor)
+	
+	return global_anchors
+
+func add_connection(target_note: StickyNote):
+	"""Add a connection to another note"""
+	if target_note not in connected_notes:
+		connected_notes.append(target_note)
+
+func _find_case_board() -> Control:
+	"""Find the case board UI in the parent hierarchy"""
+	var parent = get_parent()
+	while parent:
+		if parent.has_method("is_connecting"):
+			return parent
+		parent = parent.get_parent()
+	return null
+
+func _on_text_edit_focus_entered():
+	"""Handle text edit gaining focus"""
+	emit_signal("text_edit_started")
+
+func _on_text_edit_focus_exited():
+	"""Handle text edit losing focus"""
+	emit_signal("text_edit_finished")
 
 func load_from_data(data: Dictionary):
 	"""Load note from saved data"""

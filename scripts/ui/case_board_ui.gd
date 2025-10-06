@@ -23,6 +23,13 @@ signal case_board_closed()
 
 # Transform properties
 var zoom_level: float = 1.0
+
+# Keyboard panning state
+var keyboard_pan_keys_pressed: Dictionary = {
+	"w": false, "a": false, "s": false, "d": false,
+	"up": false, "left": false, "down": false, "right": false
+}
+var keyboard_pan_timer: Timer
 var min_zoom: float = 0.3
 var max_zoom: float = 2.0
 var zoom_step: float = 0.05
@@ -31,6 +38,15 @@ var board_offset: Vector2 = Vector2.ZERO
 # Interaction state
 var is_panning: bool = false
 var last_mouse_position: Vector2
+
+# Connection system
+var connections: Array[ConnectionString] = []
+var is_creating_connection: bool = false
+var connection_source: StickyNote = null
+var active_connection_line: Line2D = null
+
+# Input blocking for text editing
+var is_text_editing: bool = false
 
 # Board properties
 var board_size: Vector2 = Vector2(4000, 3000)  # Fixed large canvas for all resolutions
@@ -70,7 +86,6 @@ class CaseData:
 
 func _ready():
 	"""Initialize the case board UI"""
-	print("Initializing Case Board UI...")
 	
 	# Clear legacy save data (uncomment for testing new save system)
 	# _clear_legacy_save_data()
@@ -80,8 +95,6 @@ func _ready():
 	_setup_auto_save_timer()
 	_load_case_board_data()
 	_setup_board()
-	
-	print("Case Board UI initialized successfully")
 
 func _setup_ui():
 	"""Set up the main UI layout"""
@@ -179,6 +192,10 @@ func _calculate_zoom_limits():
 		# Re-center after zoom adjustment
 		_center_board()
 
+func is_connecting() -> bool:
+	"""Check if currently in connection creation mode"""
+	return is_creating_connection
+
 func _connect_signals():
 	"""Connect UI signals"""
 	close_button.connect("pressed", _on_close_button_pressed)
@@ -197,14 +214,20 @@ func _setup_auto_save_timer():
 	auto_save_timer.timeout.connect(_on_auto_save_timer_timeout)
 	auto_save_timer.autostart = true
 	add_child(auto_save_timer)
-	print("Auto-save timer set to %d minutes" % (auto_save_interval / 60))
 
-func _unhandled_input(event):
+func _input(event):
 	"""Handle zoom, pan, and tab input"""
 	# Handle escape key
 	if event.is_action_pressed("ui_cancel"):
-		_close_case_board()
+		if is_creating_connection:
+			_cancel_connection_creation()
+		else:
+			_close_case_board()
 		return
+	
+	# Handle keyboard panning (alternative to mouse panning)
+	if event is InputEventKey:
+		_handle_keyboard_panning(event)
 	
 	# Handle tab input for renaming
 	if _handle_tab_input(event):
@@ -213,8 +236,11 @@ func _unhandled_input(event):
 	# Handle tab tooltips on mouse motion
 	if event is InputEventMouseMotion:
 		_handle_tab_tooltips(event)
+		# Update connection preview line if in connection mode
+		if is_creating_connection:
+			_update_preview_line()
 	
-	# Only handle board input if mouse is over viewport
+	# Handle zoom and panning
 	if not _is_mouse_over_viewport():
 		return
 	
@@ -224,33 +250,82 @@ func _unhandled_input(event):
 			_zoom_at_cursor(zoom_step, event.position)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_zoom_at_cursor(-zoom_step, event.position)
-		elif event.button_index == MOUSE_BUTTON_MIDDLE:
-			if event.pressed:
-				is_panning = true
-				last_mouse_position = event.position
-			else:
-				is_panning = false
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			_create_sticky_note_at_cursor(event.position)
-	
-	# Handle panning
-	if event is InputEventMouseMotion and is_panning:
-		var delta = event.position - last_mouse_position
-		
-		# Scale pan speed based on zoom level for more responsive feel
-		var pan_speed = 1.0 / zoom_level
-		board_offset += delta * pan_speed
-		
-		# Enforce canvas bounds
-		_enforce_canvas_bounds()
-		_update_board_transform()
-		last_mouse_position = event.position
 
 func _is_mouse_over_viewport() -> bool:
 	"""Check if mouse is over the board viewport"""
 	var mouse_pos = get_global_mouse_position()
 	var viewport_rect = board_viewport.get_global_rect()
 	return viewport_rect.has_point(mouse_pos)
+
+func _handle_keyboard_panning(event: InputEventKey):
+	"""Handle WASD/Arrow key panning with diagonal support"""
+	var key_name = ""
+	var is_pressed = event.pressed
+	
+	# Determine which key was pressed/released
+	match event.keycode:
+		KEY_W, KEY_UP:
+			key_name = "w" if event.keycode == KEY_W else "up"
+		KEY_A, KEY_LEFT:
+			key_name = "a" if event.keycode == KEY_A else "left"
+		KEY_S, KEY_DOWN:
+			key_name = "s" if event.keycode == KEY_S else "down"
+		KEY_D, KEY_RIGHT:
+			key_name = "d" if event.keycode == KEY_D else "right"
+		_:
+			return  # Not a movement key
+	
+	# Update key state
+	keyboard_pan_keys_pressed[key_name] = is_pressed
+	
+	# Start/stop continuous panning
+	_update_keyboard_panning()
+
+func _update_keyboard_panning():
+	"""Update continuous keyboard panning based on currently pressed keys"""
+	var pan_delta = Vector2.ZERO
+	var pan_speed = 120.0  # Increased speed for smoother movement
+	
+	# Check for vertical movement
+	if keyboard_pan_keys_pressed["w"] or keyboard_pan_keys_pressed["up"]:
+		pan_delta.y += pan_speed
+	if keyboard_pan_keys_pressed["s"] or keyboard_pan_keys_pressed["down"]:
+		pan_delta.y -= pan_speed
+	
+	# Check for horizontal movement
+	if keyboard_pan_keys_pressed["a"] or keyboard_pan_keys_pressed["left"]:
+		pan_delta.x += pan_speed
+	if keyboard_pan_keys_pressed["d"] or keyboard_pan_keys_pressed["right"]:
+		pan_delta.x -= pan_speed
+	
+	# Apply movement if any keys are pressed
+	if pan_delta != Vector2.ZERO:
+		# Normalize diagonal movement to prevent faster diagonal panning
+		if abs(pan_delta.x) > 0 and abs(pan_delta.y) > 0:
+			pan_delta = pan_delta.normalized() * pan_speed
+		
+		board_offset += pan_delta * get_process_delta_time() * 60.0  # Frame-rate independent
+		_enforce_canvas_bounds()
+		_update_board_transform()
+		
+		# Start continuous panning timer if not already running
+		if not keyboard_pan_timer or keyboard_pan_timer.is_stopped():
+			_start_keyboard_pan_timer()
+	else:
+		# Stop panning timer when no keys are pressed
+		if keyboard_pan_timer and not keyboard_pan_timer.is_stopped():
+			keyboard_pan_timer.stop()
+
+func _start_keyboard_pan_timer():
+	"""Start the keyboard panning timer for continuous movement"""
+	if not keyboard_pan_timer:
+		keyboard_pan_timer = Timer.new()
+		keyboard_pan_timer.wait_time = 0.016  # ~60 FPS
+		keyboard_pan_timer.timeout.connect(_update_keyboard_panning)
+		add_child(keyboard_pan_timer)
+	keyboard_pan_timer.start()
+
+
 
 func _handle_tab_input(_event) -> bool:
 	"""Handle input for tab renaming. Returns true if event was handled."""
@@ -401,6 +476,10 @@ func add_sticky_note(board_position: Vector2, note_text: String = "New Note"):
 	sticky_note.connect("note_moved", _on_sticky_note_moved)
 	sticky_note.connect("note_deleted", _on_sticky_note_deleted)
 	sticky_note.connect("note_edited", _on_sticky_note_edited)
+	sticky_note.connect("connection_requested", _on_connection_requested)
+	sticky_note.connect("connection_target_selected", _on_connection_target_selected)
+	sticky_note.connect("text_edit_started", _on_text_edit_started)
+	sticky_note.connect("text_edit_finished", _on_text_edit_finished)
 	
 	# Add to board
 	board_control.add_child(sticky_note)
@@ -544,6 +623,11 @@ func _on_tab_button_input(event: InputEvent, tab_index: int):
 func _close_case_board():
 	print("Closing case board...")
 	_save_current_case_state()
+	
+	# Reset cursor if we're currently panning
+	if is_panning:
+		is_panning = false
+		Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 	
 	# Save current state to session for within-instance persistence
 	_save_session_state()
@@ -932,3 +1016,111 @@ func _on_auto_save_timer_timeout():
 		_auto_save_case_state()
 	else:
 		print("5-minute timer: no changes to save")
+
+# Connection System Methods
+func _on_connection_requested(source_note: StickyNote):
+	"""Handle connection creation request from a note"""
+	if is_creating_connection:
+		# Cancel existing connection
+		_cancel_connection_creation()
+	
+	is_creating_connection = true
+	connection_source = source_note
+	
+	# Create visual feedback line that follows mouse
+	_create_preview_line()
+
+func _on_connection_target_selected(target_note: StickyNote):
+	"""Handle connection target selection"""
+	if not is_creating_connection or not connection_source:
+		return
+	
+	if target_note == connection_source:
+		# Can't connect to self
+		_cancel_connection_creation()
+		return
+	
+	# Create the connection
+	_create_connection(connection_source, target_note)
+	_cancel_connection_creation()
+
+func _create_preview_line():
+	"""Create preview line that follows mouse cursor"""
+	active_connection_line = Line2D.new()
+	active_connection_line.width = 5.0  # Thicker line
+	active_connection_line.default_color = Color.RED
+	active_connection_line.z_index = 100
+	# Add some curve to the line
+	active_connection_line.joint_mode = Line2D.LINE_JOINT_ROUND
+	active_connection_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	active_connection_line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	board_control.add_child(active_connection_line)
+
+func _update_preview_line():
+	"""Update preview line to follow mouse cursor with curvature"""
+	if not active_connection_line or not connection_source:
+		return
+	
+	var mouse_pos = board_control.get_local_mouse_position()
+	var source_center = connection_source.position + (connection_source.size / 2.0)
+	
+	# Calculate curve for preview line
+	var distance = source_center.distance_to(mouse_pos)
+	var curve_strength = min(distance * 0.3, 100.0)
+	
+	# Calculate perpendicular direction for curve
+	var direction = (mouse_pos - source_center).normalized()
+	var perpendicular = Vector2(-direction.y, direction.x)
+	
+	# Add curve control point in the middle, offset perpendicular
+	var mid_point = (source_center + mouse_pos) / 2.0
+	var control_point = mid_point + perpendicular * curve_strength * 0.5
+	
+	# Create curved line with multiple points
+	active_connection_line.clear_points()
+	var segments = 15
+	for i in range(segments + 1):
+		var t = float(i) / float(segments)
+		var curve_point = _bezier_quadratic(source_center, control_point, mouse_pos, t)
+		active_connection_line.add_point(curve_point)
+
+func _bezier_quadratic(p0: Vector2, p1: Vector2, p2: Vector2, t: float) -> Vector2:
+	"""Calculate point on quadratic bezier curve"""
+	var u = 1.0 - t
+	return u * u * p0 + 2 * u * t * p1 + t * t * p2
+
+func _create_connection(source: StickyNote, target: StickyNote):
+	"""Create a visual connection between two notes"""
+	var connection = ConnectionString.new()
+	connection.setup_connection(source, target)
+	# Connect to deletion signal to clean up from connections array
+	connection.connect("tree_exiting", _on_connection_deleted.bind(connection))
+	board_control.add_child(connection)
+	connections.append(connection)
+	
+	# Add connection to both notes
+	source.add_connection(target)
+	target.add_connection(source)
+
+func _cancel_connection_creation():
+	"""Cancel connection creation mode"""
+	is_creating_connection = false
+	connection_source = null
+	
+	if active_connection_line:
+		active_connection_line.queue_free()
+		active_connection_line = null
+
+# Text editing state management
+func _on_text_edit_started():
+	"""Handle when a note starts text editing"""
+	is_text_editing = true
+
+func _on_text_edit_finished():
+	"""Handle when a note finishes text editing"""
+	is_text_editing = false
+
+func _on_connection_deleted(connection: ConnectionString):
+	"""Handle when a connection is deleted"""
+	if connection in connections:
+		connections.erase(connection)
