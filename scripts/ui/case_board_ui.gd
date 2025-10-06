@@ -12,10 +12,10 @@ signal case_board_closed()
 @onready var case_board_panel: Panel = $CaseBoardPanel
 @onready var board_container: Control = $CaseBoardPanel/MainVBox/BoardContainer
 @onready var board_viewport: Control = $CaseBoardPanel/MainVBox/BoardContainer/BoardViewport
-@onready var board_content: Control = $CaseBoardPanel/MainVBox/BoardContainer/BoardViewport/BoardContent
+@onready var board_control: Control = $CaseBoardPanel/MainVBox/BoardContainer/BoardViewport/BoardContent
 
 # Toolbar references
-@onready var case_tabs_control: TabContainer = $CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer/CaseTabsControl
+@onready var case_tabs_control: HBoxContainer = $CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer/CaseTabsControl
 @onready var new_case_button: Button = $CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer/NewCaseButton
 @onready var add_note_button: Button = $CaseBoardPanel/MainVBox/ToolbarContainer/ToolbarButtons/AddNoteButton
 @onready var clear_board_button: Button = $CaseBoardPanel/MainVBox/ToolbarContainer/ToolbarButtons/ClearBoardButton
@@ -25,7 +25,7 @@ signal case_board_closed()
 var zoom_level: float = 1.0
 var min_zoom: float = 0.3
 var max_zoom: float = 2.0
-var zoom_step: float = 0.1
+var zoom_step: float = 0.05
 var board_offset: Vector2 = Vector2.ZERO
 
 # Interaction state
@@ -50,7 +50,14 @@ var auto_save_interval: float = 300.0  # 5 minutes in seconds
 var needs_save: bool = false  # Track if changes need saving
 
 # Save file path
+# File paths
 var save_file_path: String = "user://case_board_data.json"
+
+# Session state variables (for within-instance persistence)
+# Using static variables to persist across UI instances
+static var session_case_boards: Array[CaseData] = []
+static var session_current_case_index: int = 0
+static var has_session_data: bool = false
 
 # Case management
 class CaseData:
@@ -62,16 +69,19 @@ class CaseData:
 		name = case_name
 
 func _ready():
-	# Set up the case board UI
+	"""Initialize the case board UI"""
+	print("Initializing Case Board UI...")
+	
+	# Clear legacy save data (uncomment for testing new save system)
+	# _clear_legacy_save_data()
+	
 	_setup_ui()
-	_setup_board()
 	_connect_signals()
-	
-	# Set up auto-save timer
 	_setup_auto_save_timer()
-	
-	# Load case board data (GameManager handles game state)
 	_load_case_board_data()
+	_setup_board()
+	
+	print("Case Board UI initialized successfully")
 
 func _setup_ui():
 	"""Set up the main UI layout"""
@@ -95,11 +105,9 @@ func _setup_board():
 	# Calculate total content size including border
 	var total_size = board_size + Vector2(border_size * 2, border_size * 2)
 	
-	# Set up board content size
-	board_content.custom_minimum_size = total_size
-	board_content.size = total_size
-	
-	# Create visual background
+	# Set up board content with transform and background
+	board_control.custom_minimum_size = total_size
+	board_control.size = total_size	# Create visual background
 	_create_board_background()
 	
 	# Calculate zoom limits and center board immediately
@@ -108,7 +116,7 @@ func _setup_board():
 func _create_board_background():
 	"""Create the visual board background with borders"""
 	# Remove existing background
-	for child in board_content.get_children():
+	for child in board_control.get_children():
 		if child.name == "BoardBackground":
 			child.queue_free()
 	
@@ -116,11 +124,11 @@ func _create_board_background():
 	var background = ColorRect.new()
 	background.name = "BoardBackground"
 	background.color = border_color
-	background.size = board_content.size
+	background.size = board_control.size
 	background.position = Vector2.ZERO
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	board_content.add_child(background)
-	board_content.move_child(background, 0)
+	board_control.add_child(background)
+	board_control.move_child(background, 0)
 	
 	# Create white canvas area
 	var canvas = ColorRect.new()
@@ -177,7 +185,7 @@ func _connect_signals():
 	add_note_button.connect("pressed", _on_add_note_pressed)
 	clear_board_button.connect("pressed", _on_clear_board_pressed)
 	new_case_button.connect("pressed", _on_new_case_pressed)
-	case_tabs_control.connect("tab_changed", _on_case_tab_changed)
+	# Note: Tab signals are now connected individually in _update_case_tabs()
 	
 	# Handle input
 	set_process_unhandled_input(true)
@@ -244,47 +252,17 @@ func _is_mouse_over_viewport() -> bool:
 	var viewport_rect = board_viewport.get_global_rect()
 	return viewport_rect.has_point(mouse_pos)
 
-func _handle_tab_input(event) -> bool:
+func _handle_tab_input(_event) -> bool:
 	"""Handle input for tab renaming. Returns true if event was handled."""
-	if event is InputEventMouseButton and event.pressed:
-		var mouse_pos = get_global_mouse_position()
-		var tab_rect = case_tabs_control.get_global_rect()
-		
-		# Check if mouse is over tab area
-		if tab_rect.has_point(mouse_pos):
-			var local_pos = mouse_pos - tab_rect.position
-			var tab_index = _get_tab_at_position(local_pos)
-			
-			if tab_index >= 0 and tab_index < case_boards.size():
-				if event.button_index == MOUSE_BUTTON_RIGHT:
-					print("Right-click detected on tab %d" % tab_index)
-					_show_rename_dialog(tab_index)
-					return true
-				elif event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
-					print("Double-click detected on tab %d" % tab_index)
-					_show_rename_dialog(tab_index)
-					return true
-	
+	# Tab input is now handled by individual tab buttons with signals
+	# This function is kept for compatibility but no longer needed
 	return false
 
 func _handle_tab_tooltips(_event: InputEventMouseMotion):
 	"""Handle tooltip display for tabs"""
-	var mouse_pos = get_global_mouse_position()
-	var tab_rect = case_tabs_control.get_global_rect()
-	
-	# Check if mouse is over tab area
-	if tab_rect.has_point(mouse_pos):
-		var local_pos = mouse_pos - tab_rect.position
-		var tab_index = _get_tab_at_position(local_pos)
-		
-		if tab_index >= 0 and tab_index < case_boards.size():
-			var case_name = case_boards[tab_index].name
-			var tab_tooltip = "%s\n(Right-click or double-click to rename)" % case_name
-			case_tabs_control.tooltip_text = tab_tooltip
-		else:
-			case_tabs_control.tooltip_text = ""
-	else:
-		case_tabs_control.tooltip_text = ""
+	# Tooltips are now handled by individual tab buttons
+	# This function is kept for compatibility but no longer needed
+	pass
 
 func _zoom_at_cursor(delta: float, cursor_pos: Vector2):
 	"""Zoom at cursor position with strict canvas boundary constraints"""
@@ -373,8 +351,8 @@ func _constrain_pan_to_canvas():
 
 func _update_board_transform():
 	"""Update board position and scale"""
-	board_content.scale = Vector2(zoom_level, zoom_level)
-	board_content.position = board_offset
+	board_control.scale = Vector2(zoom_level, zoom_level)
+	board_control.position = board_offset
 
 func _create_sticky_note_at_cursor(cursor_pos: Vector2):
 	"""Create sticky note at cursor position - only within white canvas"""
@@ -418,7 +396,6 @@ func add_sticky_note(board_position: Vector2, note_text: String = "New Note"):
 	# Set position (add border offset)
 	sticky_note.position = final_position + Vector2(border_size, border_size)
 	sticky_note.z_index = 50
-	sticky_note.set_note_text(note_text)
 	
 	# Connect signals
 	sticky_note.connect("note_moved", _on_sticky_note_moved)
@@ -426,8 +403,12 @@ func add_sticky_note(board_position: Vector2, note_text: String = "New Note"):
 	sticky_note.connect("note_edited", _on_sticky_note_edited)
 	
 	# Add to board
-	board_content.add_child(sticky_note)
+	board_control.add_child(sticky_note)
 	sticky_notes.append(sticky_note)
+	
+	# Set text after the node is ready
+	await sticky_note.ready
+	sticky_note.set_note_text(note_text)
 	
 	# Mark that changes need saving (but not during loading)
 	if not is_loading:
@@ -467,6 +448,31 @@ func _find_available_position(desired_position: Vector2) -> Vector2:
 	return final_position
 
 # Case management functions
+func _initialize_clean_board():
+	"""Initialize a clean board with just one empty case"""
+	case_boards.clear()
+	current_case_index = 0
+	
+	# Clear session data when starting fresh (only if we don't already have session data)
+	if not CaseBoardUI.has_session_data:
+		_clear_session_data()
+	
+	# Create one clean case
+	var initial_case = CaseData.new("Case 1")
+	case_boards.append(initial_case)
+	
+	# Update UI
+	_update_case_tabs()
+	_setup_board()
+	print("Initialized clean case board with 1 empty case")
+
+func _clear_session_data():
+	"""Clear session state data"""
+	CaseBoardUI.session_case_boards.clear()
+	CaseBoardUI.session_current_case_index = 0
+	CaseBoardUI.has_session_data = false
+	print("Session data cleared")
+
 func _initialize_cases():
 	"""Initialize the case system"""
 	if case_boards.is_empty():
@@ -475,35 +481,38 @@ func _initialize_cases():
 		_update_case_tabs()
 
 func _update_case_tabs():
-	"""Update case tab display using proper Godot 4 methods"""
-	# Temporarily disconnect tab change signal to prevent interference
-	if case_tabs_control.is_connected("tab_changed", _on_case_tab_changed):
-		case_tabs_control.disconnect("tab_changed", _on_case_tab_changed)
-	
-	# Clear existing tabs completely
+	"""Update the tabs display with custom buttons"""
+	# Clear existing tab buttons
 	for child in case_tabs_control.get_children():
-		case_tabs_control.remove_child(child)
 		child.queue_free()
 	
-	# Add tabs for each case with improved styling
+	# Wait for frame to ensure cleanup
+	await get_tree().process_frame
+	
+	# Create tab buttons for each case
 	for i in range(case_boards.size()):
-		var tab = Control.new()
-		tab.custom_minimum_size = Vector2(120, 40)  # Fixed size to prevent hover resize
-		tab.tooltip_text = "Right-click or double-click to rename"  # Add helpful tooltip
-		case_tabs_control.add_child(tab)
+		var tab_button = Button.new()
+		tab_button.text = case_boards[i].name
+		tab_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab_button.custom_minimum_size = Vector2(120, 40)
+		tab_button.tooltip_text = "%s\n(Right-click or double-click to rename)" % case_boards[i].name
 		
-		# Set title and make it editable
-		case_tabs_control.set_tab_title(i, case_boards[i].name)
+		# Style the button to look like a tab
+		if i == current_case_index:
+			# Active tab style
+			tab_button.modulate = Color.WHITE
+			tab_button.add_theme_color_override("font_color", Color.BLACK)
+		else:
+			# Inactive tab style
+			tab_button.modulate = Color(0.8, 0.8, 0.8, 1.0)
+			tab_button.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1.0))
 		
-		# Add double-click to rename functionality
-		_setup_tab_rename(i)
-	
-	# Set current tab
-	if current_case_index < case_tabs_control.get_tab_count():
-		case_tabs_control.current_tab = current_case_index
-	
-	# Reconnect the signal
-	case_tabs_control.connect("tab_changed", _on_case_tab_changed)
+		# Connect signals for tab functionality
+		tab_button.connect("pressed", _on_tab_button_pressed.bind(i))
+		tab_button.connect("gui_input", _on_tab_button_input.bind(i))
+		
+		case_tabs_control.add_child(tab_button)
+		print("Created tab button %d: '%s'" % [i, case_boards[i].name])
 
 func _setup_tab_rename(_tab_index: int):
 	"""Set up double-click to rename functionality for a tab"""
@@ -517,11 +526,29 @@ func _setup_tab_rename(_tab_index: int):
 func _on_close_button_pressed():
 	_close_case_board()
 
+func _on_tab_button_pressed(tab_index: int):
+	"""Handle tab button press to switch cases"""
+	print("Tab button %d pressed, switching to case '%s'" % [tab_index, case_boards[tab_index].name])
+	_switch_to_case(tab_index)
+
+func _on_tab_button_input(event: InputEvent, tab_index: int):
+	"""Handle right-click and double-click on tab buttons"""
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			print("Right-click detected on tab %d" % tab_index)
+			_show_rename_dialog(tab_index)
+		elif event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
+			print("Double-click detected on tab %d" % tab_index)
+			_show_rename_dialog(tab_index)
+
 func _close_case_board():
 	print("Closing case board...")
 	_save_current_case_state()
-	_save_all_game_data()  # Save everything before closing
-	print("Case board closed and saved")
+	
+	# Save current state to session for within-instance persistence
+	_save_session_state()
+	
+	print("Case board closed (session state saved, file persistence via autosave)")
 	emit_signal("case_board_closed")
 
 func _on_add_note_pressed():
@@ -535,31 +562,17 @@ func _on_clear_board_pressed():
 func _on_new_case_pressed():
 	_create_new_case()
 
-func _on_case_tab_changed(tab_index: int):
-	_switch_to_case(tab_index)
+# Note: _on_case_tab_changed removed since we now use individual tab buttons
 
 func _on_tab_renamed(tab_index: int, new_name: String):
 	"""Handle tab rename event"""
 	if tab_index >= 0 and tab_index < case_boards.size():
 		case_boards[tab_index].name = new_name
 		needs_save = true  # Mark for auto-save
+		_update_case_tabs()  # Refresh the tab display
 		print("Renamed case %d to: '%s'" % [tab_index, new_name])
 
-func _get_tab_at_position(pos: Vector2) -> int:
-	"""Get tab index at mouse position"""
-	var tab_count = case_tabs_control.get_tab_count()
-	if tab_count == 0:
-		return -1
-	
-	# Calculate tab width based on actual TabContainer size
-	var total_width = case_tabs_control.size.x
-	var tab_width = total_width / tab_count
-	var tab_index = int(pos.x / tab_width)
-	
-	# Add debug info
-	print("Tab detection: pos=%s, tab_width=%.1f, calculated_index=%d, total_tabs=%d" % [pos, tab_width, tab_index, tab_count])
-	
-	return clamp(tab_index, 0, tab_count - 1)
+# Note: _get_tab_at_position removed since we now use individual tab buttons
 
 func _show_rename_dialog(tab_index: int):
 	"""Show dialog to rename a case tab"""
@@ -599,7 +612,7 @@ func _show_rename_dialog(tab_index: int):
 		if new_name != "":
 			print("Dialog confirmed with new name: '%s'" % new_name)
 			_on_tab_renamed(tab_index, new_name)
-			_update_case_tabs()
+			# Note: _update_case_tabs() is called by _on_tab_renamed()
 		else:
 			print("Dialog confirmed but name was empty")
 		dialog.queue_free()
@@ -703,20 +716,106 @@ func _clear_all_notes():
 	sticky_notes.clear()
 
 # Save/Load functionality
+func _save_session_state():
+	"""Save current case board state to session variables"""
+	CaseBoardUI.session_case_boards.clear()
+	
+	print("=== Saving session state ===")
+	print("Current cases to save: %d" % case_boards.size())
+	
+	# Deep copy current case boards to session
+	for i in range(case_boards.size()):
+		var case_data = case_boards[i]
+		var session_case = CaseData.new(case_data.name)
+		session_case.notes = case_data.notes.duplicate(true)
+		session_case.board_data = case_data.board_data.duplicate(true)
+		CaseBoardUI.session_case_boards.append(session_case)
+		print("Saved session case %d: '%s' with %d notes" % [i, case_data.name, case_data.notes.size()])
+	
+	CaseBoardUI.session_current_case_index = current_case_index
+	CaseBoardUI.has_session_data = true
+	print("Session state saved: %d cases, current index: %d" % [CaseBoardUI.session_case_boards.size(), current_case_index])
+
+func _load_from_session_state():
+	"""Load case board state from session variables"""
+	case_boards.clear()
+	
+	# Deep copy session data back to current state
+	for session_case in CaseBoardUI.session_case_boards:
+		var case_data = CaseData.new(session_case.name)
+		case_data.notes = session_case.notes.duplicate(true)
+		case_data.board_data = session_case.board_data.duplicate(true)
+		case_boards.append(case_data)
+	
+	current_case_index = CaseBoardUI.session_current_case_index
+	if current_case_index >= case_boards.size():
+		current_case_index = 0
+	
+	print("Loaded from session state: %d cases (within-instance persistence)" % case_boards.size())
+	
+	# Update UI and load current case
+	_update_case_tabs()
+	if not case_boards.is_empty():
+		_load_case_state(case_boards[current_case_index])
+		print("Session case '%s' restored" % case_boards[current_case_index].name)
+
+func _clear_legacy_save_data():
+	"""Clear old save data that doesn't match the new smart save system"""
+	if FileAccess.file_exists(save_file_path):
+		print("Clearing legacy save data...")
+		DirAccess.remove_absolute(save_file_path)
+		print("Legacy save data cleared")
+
+func _case_has_content(case_data: CaseData) -> bool:
+	"""Check if a case has meaningful content worth saving"""
+	# Save if case has been renamed from default
+	if not case_data.name.begins_with("Case "):
+		return true
+	
+	# Save if case has any notes/components
+	if case_data.notes.size() > 0:
+		return true
+	
+	# Save if case has any board data
+	if not case_data.board_data.is_empty():
+		return true
+	
+	return false
+
 func _save_case_board_data():
-	"""Save all case board data to disk"""
+	"""Save only meaningful case board data to disk"""
 	_save_current_case_state()  # Ensure current state is saved
+	
+	# Filter cases with meaningful content
+	var meaningful_cases = []
+	var meaningful_current_index = -1
+	
+	for i in range(case_boards.size()):
+		var case_data = case_boards[i]
+		if _case_has_content(case_data):
+			meaningful_cases.append(case_data)
+			if i == current_case_index:
+				meaningful_current_index = meaningful_cases.size() - 1
+	
+	# Don't save if no meaningful cases exist
+	if meaningful_cases.is_empty():
+		print("No meaningful cases to save - skipping save")
+		# Remove existing save file if it exists
+		if FileAccess.file_exists(save_file_path):
+			DirAccess.remove_absolute(save_file_path)
+			print("Removed empty case board save file")
+		return
 	
 	var save_data = {
 		"cases": [],
-		"current_case_index": current_case_index,
+		"current_case_index": meaningful_current_index,
 		"version": 1
 	}
 	
-	# Save each case
-	print("Saving %d cases to disk:" % case_boards.size())
-	for i in range(case_boards.size()):
-		var case_data = case_boards[i]
+	# Save meaningful cases
+	print("Saving %d meaningful cases to disk:" % meaningful_cases.size())
+	for i in range(meaningful_cases.size()):
+		var case_data = meaningful_cases[i]
 		var case_save_data = {
 			"name": case_data.name,
 			"notes": case_data.notes.duplicate(),
@@ -735,16 +834,28 @@ func _save_case_board_data():
 		print("Error: Could not save case board data")
 
 func _load_case_board_data():
-	"""Load case board data from disk"""
-	if not FileAccess.file_exists(save_file_path):
-		print("No save file found, initializing with first case")
-		_initialize_cases()
+	"""Load case board data - prioritize session state, fallback to file"""
+	print("=== Loading case board data ===")
+	print("Session data status: has_data=%s, cases=%d" % [CaseBoardUI.has_session_data, CaseBoardUI.session_case_boards.size()])
+	
+	# First, try to load from session (within same game instance)
+	if CaseBoardUI.has_session_data and not CaseBoardUI.session_case_boards.is_empty():
+		print("Loading from session state (within-instance persistence)")
+		_load_from_session_state()
 		return
+	
+	# No session data, try loading from file (between game restarts)
+	if not FileAccess.file_exists(save_file_path):
+		print("No case board save file found - starting with clean slate")
+		_initialize_clean_board()
+		return
+	
+	print("Loading from file (between-instance persistence)")
 	
 	var file = FileAccess.open(save_file_path, FileAccess.READ)
 	if not file:
-		print("Error: Could not open save file, initializing with first case")
-		_initialize_cases()
+		print("Error: Could not open save file, starting with clean slate")
+		_initialize_clean_board()
 		return
 	
 	var file_content = file.get_as_text()
@@ -754,19 +865,19 @@ func _load_case_board_data():
 	var parse_result = json.parse(file_content)
 	
 	if parse_result != OK:
-		print("Error: Could not parse save file, initializing with first case")
-		_initialize_cases()
+		print("Error: Could not parse save file, starting with clean slate")
+		_initialize_clean_board()
 		return
 	
 	var save_data = json.data
 	
 	# Validate save data
 	if not save_data.has("cases") or not save_data.has("current_case_index"):
-		print("Error: Invalid save file format, initializing with first case")
-		_initialize_cases()
+		print("Error: Invalid save file format, starting with clean slate")
+		_initialize_clean_board()
 		return
 	
-	# Load cases
+	# Load cases from file
 	case_boards.clear()
 	for i in range(save_data["cases"].size()):
 		var case_info = save_data["cases"][i]
@@ -782,6 +893,12 @@ func _load_case_board_data():
 		current_case_index = 0
 	print("Setting current case index to: %d" % current_case_index)
 	
+	# Handle empty case boards (shouldn't happen with new save system)
+	if case_boards.is_empty():
+		print("Warning: Loaded empty case board, starting with clean slate")
+		_initialize_clean_board()
+		return
+	
 	# Update UI
 	_update_case_tabs()
 	
@@ -791,8 +908,8 @@ func _load_case_board_data():
 		_load_case_state(case_boards[current_case_index])
 		print("Case board data loaded successfully: %d cases" % case_boards.size())
 	else:
-		print("No cases found in save file, initializing with first case")
-		_initialize_cases()
+		print("No cases found in save file, starting with clean slate")
+		_initialize_clean_board()
 
 func _save_all_game_data():
 	"""Save all game data including case board and game clock"""

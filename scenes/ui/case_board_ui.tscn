@@ -60,15 +60,11 @@ size_flags_vertical = 0
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="CaseTabsControl" type="TabContainer" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer"]
+[node name="CaseTabsControl" type="HBoxContainer" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 custom_minimum_size = Vector2(0, 40)
-tabs_rearrange_group = 1
-
-[node name="Case 1" type="Control" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer/CaseTabsControl"]
-layout_mode = 2
 
 [node name="NewCaseButton" type="Button" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer"]
 layout_mode = 2
