@@ -40,6 +40,7 @@ func _setup_tooltip():
 
 func setup_connection(from_note: StickyNote, to_note: StickyNote):
 	"""Set up connection between two notes"""
+	print("Setting up connection string between: ", from_note.note_id, " and ", to_note.note_id)
 	source_note = from_note
 	target_note = to_note
 	
@@ -47,18 +48,24 @@ func setup_connection(from_note: StickyNote, to_note: StickyNote):
 	if source_note:
 		source_note.connect("note_moved", _on_note_moved)
 		source_note.connect("note_deleted", _on_note_deleted)
+		print("Connected signals for source note")
 	
 	if target_note:
 		target_note.connect("note_moved", _on_note_moved)
 		target_note.connect("note_deleted", _on_note_deleted)
+		print("Connected signals for target note")
 	
 	# Initial update
 	_update_connection_points()
+	print("Connection setup complete")
 
 func _update_connection_points():
 	"""Update the connection points based on note positions"""
 	if not source_note or not target_note:
+		print("Missing notes for connection update")
 		return
+	
+	print("Updating connection points. Source pos: ", source_note.position, " Target pos: ", target_note.position)
 	
 	# Get the closest anchor points between the two notes in parent coordinate space
 	var source_center = source_note.position + (source_note.size / 2.0)
@@ -68,11 +75,15 @@ func _update_connection_points():
 	source_point = source_note.get_closest_anchor_point(target_center)
 	target_point = target_note.get_closest_anchor_point(source_center)
 	
+	print("Anchor points: ", source_point, " -> ", target_point)
+	
 	# Calculate curve control points for string-like appearance
 	_calculate_curve_points()
 	
 	# Update collision area for mouse detection
 	_update_collision_area()
+	
+	print("Connection position: ", position, " size: ", size)
 	
 	# Force redraw
 	queue_redraw()

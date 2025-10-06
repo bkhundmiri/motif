@@ -16,10 +16,15 @@ signal text_edit_finished()
 # UI References
 @onready var background: Panel = $Background
 @onready var text_edit: TextEdit = $Background/TextEdit
-@onready var delete_button: Button = $Background/DeleteButton
+# Delete button removed - using context menu instead
 
 # Context menu
 var context_menu: PopupMenu
+
+# Hover tooltip
+var hover_tooltip: Label
+var hover_timer: Timer
+var is_hovering: bool = false
 
 # Properties
 var note_id: String = ""
@@ -44,6 +49,7 @@ func _ready():
 	# Set up the sticky note
 	_setup_note()
 	_setup_context_menu()
+	_setup_hover_tooltip()
 	_connect_signals()
 	_calculate_anchor_points()
 
@@ -81,15 +87,62 @@ func _calculate_anchor_points():
 	anchor_points.append(Vector2(half_width, note_size.y))  # Bottom
 	anchor_points.append(Vector2(0, half_height))  # Left
 
+func _setup_hover_tooltip():
+	"""Set up hover tooltip for right-click hint"""
+	hover_tooltip = _create_dark_tooltip("Right click for options")
+	hover_tooltip.position = Vector2(10, -30)
+	add_child(hover_tooltip)
+	
+	# Setup hover timer with reduced delay
+	hover_timer = Timer.new()
+	hover_timer.wait_time = 1.0  # Reduced from 2.0 seconds
+	hover_timer.one_shot = true
+	hover_timer.timeout.connect(_on_hover_timeout)
+	add_child(hover_timer)
+
+func _create_dark_tooltip(text: String) -> Label:
+	"""Create a dark tooltip with consistent styling"""
+	var tooltip = Label.new()
+	tooltip.text = text
+	tooltip.visible = false
+	tooltip.z_index = 1000
+	
+	# Create dark background style
+	var style_box = StyleBoxFlat.new()
+	style_box.bg_color = Color(0.2, 0.2, 0.2, 0.9)  # Dark semi-transparent
+	style_box.border_width_left = 1
+	style_box.border_width_top = 1
+	style_box.border_width_right = 1
+	style_box.border_width_bottom = 1
+	style_box.border_color = Color(0.4, 0.4, 0.4, 1.0)
+	style_box.corner_radius_top_left = 4
+	style_box.corner_radius_top_right = 4
+	style_box.corner_radius_bottom_left = 4
+	style_box.corner_radius_bottom_right = 4
+	style_box.content_margin_left = 8
+	style_box.content_margin_right = 8
+	style_box.content_margin_top = 4
+	style_box.content_margin_bottom = 4
+	
+	tooltip.add_theme_stylebox_override("normal", style_box)
+	tooltip.add_theme_color_override("font_color", Color.WHITE)
+	tooltip.add_theme_color_override("font_shadow_color", Color.BLACK)
+	tooltip.add_theme_constant_override("shadow_offset_x", 1)
+	tooltip.add_theme_constant_override("shadow_offset_y", 1)
+	
+	return tooltip
+
 func _connect_signals():
 	"""Connect internal signals"""
 	text_edit.connect("text_changed", _on_text_changed)
 	text_edit.connect("focus_entered", _on_text_edit_focus_entered)
 	text_edit.connect("focus_exited", _on_text_edit_focus_exited)
-	delete_button.connect("pressed", _on_delete_pressed)
+	# Delete button removed - using context menu
 	
-	# Connect background input for dragging
+	# Connect background input for dragging and hover
 	background.connect("gui_input", _on_background_input)
+	background.connect("mouse_entered", _on_mouse_entered)
+	background.connect("mouse_exited", _on_mouse_exited)
 
 func _on_context_menu_selected(id: int):
 	"""Handle context menu selection"""
@@ -125,7 +178,9 @@ func _gui_input(event):
 				# Check if this is a connection target selection
 				var case_board = _find_case_board()
 				if case_board and case_board.has_method("is_connecting") and case_board.is_connecting():
+					print("Note clicked during connection mode: ", note_id)
 					emit_signal("connection_target_selected", self)
+					get_viewport().set_input_as_handled()  # Prevent further processing
 					return
 				
 				# Start dragging - store the offset from mouse to note position
@@ -159,6 +214,9 @@ func _gui_input(event):
 			# Constrain position to stay within white canvas bounds
 			var constrained_position = _constrain_to_canvas(desired_position)
 			position = constrained_position
+			
+			# Update connections in real-time during dragging
+			_update_connections_during_drag()
 
 func _constrain_to_canvas(desired_pos: Vector2) -> Vector2:
 	"""Constrain sticky note position to stay within white canvas bounds"""
@@ -188,10 +246,6 @@ func _on_background_input(event):
 func _on_text_changed():
 	"""Handle text changes"""
 	emit_signal("note_edited", self, text_edit.text)
-
-func _on_delete_pressed():
-	"""Handle delete button press"""
-	emit_signal("note_deleted", self)
 
 # Public methods
 func set_note_text(text: String):
@@ -256,6 +310,33 @@ func add_connection(target_note: StickyNote):
 	"""Add a connection to another note"""
 	if target_note not in connected_notes:
 		connected_notes.append(target_note)
+
+func _update_connections_during_drag():
+	"""Update all connections that involve this note during dragging"""
+	# Find all connection strings in the parent and update them
+	var parent_node = get_parent()
+	if parent_node:
+		for child in parent_node.get_children():
+			if child is ConnectionString:
+				var connection = child as ConnectionString
+				if connection.source_note == self or connection.target_note == self:
+					connection._update_connection_points()
+
+func _on_mouse_entered():
+	"""Handle mouse entering the note area"""
+	is_hovering = true
+	hover_timer.start()
+
+func _on_mouse_exited():
+	"""Handle mouse leaving the note area"""
+	is_hovering = false
+	hover_timer.stop()
+	hover_tooltip.visible = false
+
+func _on_hover_timeout():
+	"""Show tooltip after hover delay"""
+	if is_hovering and not text_edit.has_focus():
+		hover_tooltip.visible = true
 
 func _find_case_board() -> Control:
 	"""Find the case board UI in the parent hierarchy"""

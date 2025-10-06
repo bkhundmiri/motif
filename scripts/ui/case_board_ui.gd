@@ -250,6 +250,13 @@ func _input(event):
 			_zoom_at_cursor(zoom_step, event.position)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_zoom_at_cursor(-zoom_step, event.position)
+		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and is_creating_connection:
+			# If creating connection, we need to handle this more carefully
+			# Let the note handle target selection first, then cancel if no target was selected
+			await get_tree().process_frame  # Wait one frame for note input to process
+			if is_creating_connection:  # If still creating connection after frame, cancel it
+				print("Cancelling connection - clicked on empty space")
+				_cancel_connection_creation()
 
 func _is_mouse_over_viewport() -> bool:
 	"""Check if mouse is over the board viewport"""
@@ -1020,26 +1027,33 @@ func _on_auto_save_timer_timeout():
 # Connection System Methods
 func _on_connection_requested(source_note: StickyNote):
 	"""Handle connection creation request from a note"""
+	print("Connection requested from note: ", source_note.note_id)
 	if is_creating_connection:
+		print("Already creating connection - cancelling previous")
 		# Cancel existing connection
 		_cancel_connection_creation()
 	
 	is_creating_connection = true
 	connection_source = source_note
+	print("Connection mode enabled, source set to: ", source_note.note_id)
 	
 	# Create visual feedback line that follows mouse
 	_create_preview_line()
 
 func _on_connection_target_selected(target_note: StickyNote):
 	"""Handle connection target selection"""
+	print("Connection target selected: ", target_note.note_id)
 	if not is_creating_connection or not connection_source:
+		print("Not in connection mode or no source")
 		return
 	
 	if target_note == connection_source:
+		print("Cannot connect to self - cancelling")
 		# Can't connect to self
 		_cancel_connection_creation()
 		return
 	
+	print("Creating connection between: ", connection_source.note_id, " and ", target_note.note_id)
 	# Create the connection
 	_create_connection(connection_source, target_note)
 	_cancel_connection_creation()
@@ -1091,12 +1105,14 @@ func _bezier_quadratic(p0: Vector2, p1: Vector2, p2: Vector2, t: float) -> Vecto
 
 func _create_connection(source: StickyNote, target: StickyNote):
 	"""Create a visual connection between two notes"""
+	print("Creating connection between notes: ", source.note_id, " -> ", target.note_id)
 	var connection = ConnectionString.new()
 	connection.setup_connection(source, target)
 	# Connect to deletion signal to clean up from connections array
 	connection.connect("tree_exiting", _on_connection_deleted.bind(connection))
 	board_control.add_child(connection)
 	connections.append(connection)
+	print("Connection added. Total connections: ", connections.size())
 	
 	# Add connection to both notes
 	source.add_connection(target)
@@ -1104,6 +1120,7 @@ func _create_connection(source: StickyNote, target: StickyNote):
 
 func _cancel_connection_creation():
 	"""Cancel connection creation mode"""
+	print("Cancelling connection creation")
 	is_creating_connection = false
 	connection_source = null
 	
