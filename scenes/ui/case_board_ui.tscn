@@ -1,0 +1,107 @@
+[gd_scene load_steps=4 format=3 uid="uid://dk4yam2n6p8q7"]
+
+[ext_resource type="Script" path="res://scripts/ui/case_board_ui.gd" id="1_8k0j6"]
+[ext_resource type="Theme" uid="uid://bwx8qk2m1o4p8" path="res://resources/themes/main_theme.tres" id="2_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.95, 0.95, 0.95, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="CaseBoardUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2_theme")
+script = ExtResource("1_8k0j6")
+
+[node name="BackgroundBlur" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+
+[node name="CaseBoardPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -640.0
+offset_top = -360.0
+offset_right = 640.0
+offset_bottom = 360.0
+
+[node name="MainVBox" type="VBoxContainer" parent="CaseBoardPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+
+[node name="ToolbarContainer" type="VBoxContainer" parent="CaseBoardPanel/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="CaseTabsContainer" type="HBoxContainer" parent="CaseBoardPanel/MainVBox/ToolbarContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="CaseTabsControl" type="HBoxContainer" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+custom_minimum_size = Vector2(0, 40)
+
+[node name="NewCaseButton" type="Button" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+custom_minimum_size = Vector2(100, 40)
+text = "+ New Case"
+
+[node name="ToolbarButtons" type="HBoxContainer" parent="CaseBoardPanel/MainVBox/ToolbarContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="AddNoteButton" type="Button" parent="CaseBoardPanel/MainVBox/ToolbarContainer/ToolbarButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 35)
+text = "📝 Add Note"
+
+[node name="ClearBoardButton" type="Button" parent="CaseBoardPanel/MainVBox/ToolbarContainer/ToolbarButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 35)
+text = "🗑️ Clear Board"
+
+[node name="VSeparator" type="VSeparator" parent="CaseBoardPanel/MainVBox/ToolbarContainer/ToolbarButtons"]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="CaseBoardPanel/MainVBox/ToolbarContainer/ToolbarButtons"]
+layout_mode = 2
+custom_minimum_size = Vector2(80, 35)
+text = "❌ Close"
+
+[node name="BoardContainer" type="PanelContainer" parent="CaseBoardPanel/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BoardViewport" type="Control" parent="CaseBoardPanel/MainVBox/BoardContainer"]
+layout_mode = 2
+clip_contents = true
+
+[node name="BoardContent" type="Control" parent="CaseBoardPanel/MainVBox/BoardContainer/BoardViewport"]
+layout_mode = 2
+custom_minimum_size = Vector2(2400, 1900)
