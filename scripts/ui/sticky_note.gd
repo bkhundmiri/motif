@@ -75,17 +75,31 @@ func _setup_context_menu():
 	add_child(context_menu)
 
 func _calculate_anchor_points():
-	"""Calculate anchor points on the middle of each side"""
+	"""Calculate anchor points on sides and corners for better connection positioning"""
 	anchor_points.clear()
 	var note_size = size
 	var half_width = note_size.x / 2.0
 	var half_height = note_size.y / 2.0
+	var quarter_width = note_size.x / 4.0
+	var quarter_height = note_size.y / 4.0
+	var three_quarter_width = note_size.x * 3.0 / 4.0
+	var three_quarter_height = note_size.y * 3.0 / 4.0
 	
-	# Top, Right, Bottom, Left
-	anchor_points.append(Vector2(half_width, 0))  # Top
-	anchor_points.append(Vector2(note_size.x, half_height))  # Right
-	anchor_points.append(Vector2(half_width, note_size.y))  # Bottom
-	anchor_points.append(Vector2(0, half_height))  # Left
+	# Side centers (primary anchors)
+	anchor_points.append(Vector2(half_width, 0))  # Top center
+	anchor_points.append(Vector2(note_size.x, half_height))  # Right center
+	anchor_points.append(Vector2(half_width, note_size.y))  # Bottom center
+	anchor_points.append(Vector2(0, half_height))  # Left center
+	
+	# Quarter points on each side for better positioning
+	anchor_points.append(Vector2(quarter_width, 0))  # Top left quarter
+	anchor_points.append(Vector2(three_quarter_width, 0))  # Top right quarter
+	anchor_points.append(Vector2(note_size.x, quarter_height))  # Right top quarter
+	anchor_points.append(Vector2(note_size.x, three_quarter_height))  # Right bottom quarter
+	anchor_points.append(Vector2(three_quarter_width, note_size.y))  # Bottom right quarter
+	anchor_points.append(Vector2(quarter_width, note_size.y))  # Bottom left quarter
+	anchor_points.append(Vector2(0, three_quarter_height))  # Left bottom quarter
+	anchor_points.append(Vector2(0, quarter_height))  # Left top quarter
 
 func _setup_hover_tooltip():
 	"""Set up hover tooltip for right-click hint"""

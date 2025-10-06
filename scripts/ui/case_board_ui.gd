@@ -716,6 +716,13 @@ func _show_rename_dialog(tab_index: int):
 	)
 
 func _on_sticky_note_moved(_note: StickyNote, _new_position: Vector2):
+	# Update all connections involving this note
+	for child in board_control.get_children():
+		if child is ConnectionString:
+			var connection = child as ConnectionString
+			if connection.source_note == _note or connection.target_note == _note:
+				connection.update_on_note_movement()
+	
 	needs_save = true  # Mark for next auto-save
 
 func _on_sticky_note_deleted(note: StickyNote):
