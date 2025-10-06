@@ -161,10 +161,12 @@ func cycle_note_color():
 
 func get_save_data() -> Dictionary:
 	"""Get data for saving this note"""
+	# Save position relative to canvas (subtract border offset)
+	var canvas_position = position - Vector2(50, 50)  # border_size = 50
 	return {
 		"id": note_id,
 		"text": get_note_text(),
-		"position": global_position,
+		"position": {"x": canvas_position.x, "y": canvas_position.y},  # Save as dictionary for JSON compatibility
 		"color_index": current_color_index
 	}
 

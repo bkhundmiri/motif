@@ -22,12 +22,18 @@ var camera_rotation_x: float = 0.0
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera3D
 
+# Manager references
+var game_manager
+
 # Get the gravity from the project settings to be synced with RigidBody nodes
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 func _ready():
 	# Add player to group for interaction detection
 	add_to_group("player")
+	
+	# Get game manager reference
+	game_manager = get_node("/root/GameManagerUI")
 	
 	# Capture mouse cursor for first-person experience
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -37,6 +43,16 @@ func _ready():
 		camera_pivot.position = Vector3.ZERO
 
 func _input(event):
+	# Block input when UI is open (except escape key)
+	if game_manager and game_manager.ui_open:
+		# Only allow escape key when UI is open
+		if event.is_action_pressed("ui_cancel"):
+			if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+			else:
+				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		return
+	
 	# Handle mouse movement for camera rotation
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		# Rotate player body horizontally (Y-axis)
@@ -57,6 +73,17 @@ func _input(event):
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _physics_process(delta):
+	# Block movement when UI is open
+	if game_manager and game_manager.ui_open:
+		# Stop all movement when UI is open
+		velocity.x = move_toward(velocity.x, 0, current_speed)
+		velocity.z = move_toward(velocity.z, 0, current_speed)
+		# Still apply gravity
+		if not is_on_floor():
+			velocity.y -= gravity * delta
+		move_and_slide()
+		return
+	
 	# Handle gravity
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -87,6 +114,10 @@ func _physics_process(delta):
 	move_and_slide()
 
 func _unhandled_input(event):
+	# Block interaction input when UI is open
+	if game_manager and game_manager.ui_open:
+		return
+	
 	# Additional input handling for detective-specific actions
 	if event.is_action_pressed("interact"):
 		interact_with_object()
