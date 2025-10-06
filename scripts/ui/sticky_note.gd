@@ -50,6 +50,9 @@ func _connect_signals():
 	"""Connect internal signals"""
 	text_edit.connect("text_changed", _on_text_changed)
 	delete_button.connect("pressed", _on_delete_pressed)
+	
+	# Connect background input for dragging
+	background.connect("gui_input", _on_background_input)
 
 func _update_note_color():
 	"""Update the note's background color"""
@@ -68,23 +71,62 @@ func _update_note_color():
 		background.add_theme_stylebox_override("panel", style_box)
 
 func _gui_input(event):
-	"""Handle mouse input for dragging"""
+	"""Handle mouse input for dragging from anywhere on the note"""
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
-				# Start dragging
+				# Start dragging - store the offset from mouse to note position
 				is_dragging = true
-				drag_offset = event.position
+				drag_offset = event.position  # Local offset within the note
 				move_to_front()  # Bring to front when clicked
 			else:
 				# Stop dragging
 				if is_dragging:
 					is_dragging = false
-					emit_signal("note_moved", self, global_position)
+					emit_signal("note_moved", self, position)
 	
 	elif event is InputEventMouseMotion and is_dragging:
-		# Handle dragging
-		global_position = get_global_mouse_position() - drag_offset
+		# Handle dragging using global mouse position and coordinate transformation
+		var global_mouse_pos = get_global_mouse_position()
+		var parent_node = get_parent()
+		
+		if parent_node:
+			# Convert global mouse position to parent's local coordinate space
+			# For Control nodes, we transform through the parent's global transform
+			var parent_transform = parent_node.get_global_transform()
+			var local_mouse_pos = parent_transform.affine_inverse() * global_mouse_pos
+			
+			# Calculate desired position relative to where we clicked on the note
+			var desired_position = local_mouse_pos - drag_offset
+			
+			# Constrain position to stay within white canvas bounds
+			var constrained_position = _constrain_to_canvas(desired_position)
+			position = constrained_position
+
+func _constrain_to_canvas(desired_pos: Vector2) -> Vector2:
+	"""Constrain sticky note position to stay within white canvas bounds"""
+	# Canvas parameters (matching case_board_ui.gd)
+	var border_size = 50.0
+	var board_size = Vector2(4000, 3000)
+	
+	# Calculate canvas boundaries in parent coordinate space
+	var canvas_start = Vector2(border_size, border_size)
+	var canvas_end = canvas_start + board_size
+	
+	# Note size
+	var note_size = size
+	
+	# Constrain position to keep note completely within canvas
+	var constrained_pos = desired_pos
+	constrained_pos.x = clamp(constrained_pos.x, canvas_start.x, canvas_end.x - note_size.x)
+	constrained_pos.y = clamp(constrained_pos.y, canvas_start.y, canvas_end.y - note_size.y)
+	
+	return constrained_pos
+
+func _on_background_input(event):
+	"""Handle input from the background panel for dragging"""
+	# Forward input to the main drag handler
+	_gui_input(event)
 
 func _on_text_changed():
 	"""Handle text changes"""

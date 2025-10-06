@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bj5x6m1n7p4ra"]
 
-[ext_resource type="Script" path="res://scripts/ui/sticky_note.gd" id="1_9k3j7"]
+[ext_resource type="Script" uid="uid://b7sir7d8itwos" path="res://scripts/ui/sticky_note.gd" id="1_9k3j7"]
 [ext_resource type="Theme" uid="uid://bwx8qk2m1o4p8" path="res://resources/themes/main_theme.tres" id="2_theme"]
 
 [node name="StickyNote" type="Control"]
@@ -8,6 +8,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 150.0
 offset_bottom = 150.0
+mouse_filter = 1
 theme = ExtResource("2_theme")
 script = ExtResource("1_9k3j7")
 
@@ -16,6 +17,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
 
 [node name="TextEdit" type="TextEdit" parent="Background"]
 layout_mode = 1
@@ -26,6 +30,10 @@ offset_left = 5.0
 offset_top = 25.0
 offset_right = -5.0
 offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/background_color = Color(1, 1, 1, 0)
+theme_override_colors/placeholder_color = Color(0, 0, 0, 0.6)
 placeholder_text = "Type your note here..."
 wrap_mode = 1
 
@@ -38,4 +46,5 @@ offset_left = -25.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = 25.0
+grow_horizontal = 0
 text = "X"

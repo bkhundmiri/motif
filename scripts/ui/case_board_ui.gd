@@ -1,8 +1,8 @@
 extends Control
 class_name CaseBoardUI
 
-## Case Board UI System
-## Provides whiteboard-style investigation interface with zoom and pan
+## Case Board UI System with proper zoom-to-cursor and pan
+## Uses direct Control manipulation instead of ScrollContainer
 
 # Signals
 signal case_board_closed()
@@ -10,8 +10,9 @@ signal case_board_closed()
 # UI References
 @onready var background_blur: ColorRect = $BackgroundBlur
 @onready var case_board_panel: Panel = $CaseBoardPanel
-@onready var board_scroll_container: ScrollContainer = $CaseBoardPanel/MainVBox/BoardContainer/BoardScrollContainer
-@onready var board_content: Control = $CaseBoardPanel/MainVBox/BoardContainer/BoardScrollContainer/BoardContent
+@onready var board_container: Control = $CaseBoardPanel/MainVBox/BoardContainer
+@onready var board_viewport: Control = $CaseBoardPanel/MainVBox/BoardContainer/BoardViewport
+@onready var board_content: Control = $CaseBoardPanel/MainVBox/BoardContainer/BoardViewport/BoardContent
 
 # Toolbar references
 @onready var case_tabs_control: TabContainer = $CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer/CaseTabsControl
@@ -20,21 +21,27 @@ signal case_board_closed()
 @onready var clear_board_button: Button = $CaseBoardPanel/MainVBox/ToolbarContainer/ToolbarButtons/ClearBoardButton
 @onready var close_button: Button = $CaseBoardPanel/MainVBox/ToolbarContainer/ToolbarButtons/CloseButton
 
-# Zoom and Pan properties
+# Transform properties
 var zoom_level: float = 1.0
 var min_zoom: float = 0.3
-var max_zoom: float = 3.0
-var zoom_step: float = 0.2
+var max_zoom: float = 2.0
+var zoom_step: float = 0.1
+var board_offset: Vector2 = Vector2.ZERO
 
-var pan_offset: Vector2 = Vector2.ZERO
+# Interaction state
 var is_panning: bool = false
 var last_mouse_position: Vector2
 
+# Board properties
+var board_size: Vector2 = Vector2(4000, 3000)  # Fixed large canvas for all resolutions
+var border_size: float = 50.0  # Small border edge
+var border_color: Color = Color(0.15, 0.15, 0.15)
+var canvas_color: Color = Color.WHITE
+
 # Board state
-var board_size: Vector2 = Vector2(2000, 1500)  # Large whiteboard space
 var sticky_notes: Array = []
 var current_case_index: int = 0
-var case_boards: Array = []  # Array to store multiple case boards
+var case_boards: Array = []
 
 # Case management
 class CaseData:
@@ -50,11 +57,12 @@ func _ready():
 	_setup_ui()
 	_setup_board()
 	_connect_signals()
-	_setup_default_case()
+	
+	# Initialize with first case
+	_initialize_cases()
 
 func _setup_ui():
-	"""Configure the case board UI layout"""
-	# Fill the entire screen
+	"""Set up the main UI layout"""
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
 	# Set up background blur
@@ -68,49 +76,117 @@ func _setup_ui():
 	case_board_panel.position = (screen_size - panel_size) / 2
 
 func _setup_board():
-	"""Initialize the board content area"""
-	print("=== Setting up board ===")
-	print("Board size: ", board_size)
+	"""Initialize the board content area with proper clipping"""
+	# Set up viewport for clipping
+	board_viewport.clip_contents = true
+	
+	# Calculate total content size including border
+	var total_size = board_size + Vector2(border_size * 2, border_size * 2)
 	
 	# Set up board content size
-	board_content.custom_minimum_size = board_size
-	board_content.size = board_size
+	board_content.custom_minimum_size = total_size
+	board_content.size = total_size
 	
-	print("Board content size set to: ", board_content.size)
-	print("Board content position: ", board_content.position)
-	print("Board content visible: ", board_content.visible)
-	print("Board scroll container size: ", board_scroll_container.size)
+	# Create visual background
+	_create_board_background()
 	
-	# Apply initial zoom and pan
+	# Calculate zoom limits and center board
+	call_deferred("_calculate_zoom_limits")
+
+func _create_board_background():
+	"""Create the visual board background with borders"""
+	# Remove existing background
+	for child in board_content.get_children():
+		if child.name == "BoardBackground":
+			child.queue_free()
+	
+	# Create border background
+	var background = ColorRect.new()
+	background.name = "BoardBackground"
+	background.color = border_color
+	background.size = board_content.size
+	background.position = Vector2.ZERO
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	board_content.add_child(background)
+	board_content.move_child(background, 0)
+	
+	# Create white canvas area
+	var canvas = ColorRect.new()
+	canvas.name = "BoardCanvas"
+	canvas.color = canvas_color
+	canvas.size = board_size
+	canvas.position = Vector2(border_size, border_size)
+	canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.add_child(canvas)
+
+func _is_position_in_canvas(pos: Vector2) -> bool:
+	"""Check if a position is within the white canvas area"""
+	var canvas_rect = Rect2(Vector2.ZERO, board_size)
+	return canvas_rect.has_point(pos)
+
+func _clamp_position_to_canvas(pos: Vector2, note_size: Vector2 = Vector2(150, 150)) -> Vector2:
+	"""Clamp position to keep note fully within canvas bounds"""
+	var clamped_pos = pos
+	clamped_pos.x = clamp(clamped_pos.x, 0, board_size.x - note_size.x)
+	clamped_pos.y = clamp(clamped_pos.y, 0, board_size.y - note_size.y)
+	return clamped_pos
+
+func _center_board():
+	"""Center the white canvas in the viewport"""
+	var viewport_size = board_viewport.size
+	var canvas_size_scaled = board_size * zoom_level
+	var border_offset_scaled = Vector2(border_size, border_size) * zoom_level
+	
+	# Center the white canvas, not the entire board content
+	var canvas_center_offset = (viewport_size - canvas_size_scaled) / 2
+	board_offset = canvas_center_offset - border_offset_scaled
 	_update_board_transform()
-	print("=== Board setup complete ===")
+
+func _calculate_zoom_limits():
+	"""Calculate proper zoom limits"""
+	var viewport_size = board_viewport.size
+	
+	if viewport_size.x > 0 and viewport_size.y > 0:
+		# Calculate zoom to fit canvas (not total) in viewport with some padding
+		var fit_zoom_x = viewport_size.x / board_size.x
+		var fit_zoom_y = viewport_size.y / board_size.y
+		min_zoom = min(fit_zoom_x, fit_zoom_y) * 0.8  # Leave 20% padding
+		
+		# Set initial zoom to fit canvas nicely
+		zoom_level = min_zoom * 1.2  # Slightly zoomed in from min
+		zoom_level = clamp(zoom_level, min_zoom, max_zoom)
+		
+		# Re-center after zoom adjustment
+		_center_board()
 
 func _connect_signals():
 	"""Connect UI signals"""
 	close_button.connect("pressed", _on_close_button_pressed)
-	
-	# Toolbar signals
 	add_note_button.connect("pressed", _on_add_note_pressed)
 	clear_board_button.connect("pressed", _on_clear_board_pressed)
 	new_case_button.connect("pressed", _on_new_case_pressed)
 	case_tabs_control.connect("tab_changed", _on_case_tab_changed)
 	
-	# Handle escape key
+	# Handle input
 	set_process_unhandled_input(true)
 
 func _unhandled_input(event):
-	"""Handle input for zoom, pan, and closing"""
-	# Handle escape key to close
+	"""Handle zoom, pan, and other input"""
+	# Handle escape key
 	if event.is_action_pressed("ui_cancel"):
 		_close_case_board()
 		return
 	
-	# Handle mouse wheel for zooming
+	# Only handle board input if mouse is over viewport
+	if not _is_mouse_over_viewport():
+		return
+	
+	# Handle zoom
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_zoom_at_point(zoom_step, event.position)
+			_zoom_at_cursor(zoom_step, event.position)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_zoom_at_point(-zoom_step, event.position)
+			_zoom_at_cursor(-zoom_step, event.position)
 		elif event.button_index == MOUSE_BUTTON_MIDDLE:
 			if event.pressed:
 				is_panning = true
@@ -118,76 +194,144 @@ func _unhandled_input(event):
 			else:
 				is_panning = false
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			# Right-click to add sticky note
-			_create_sticky_note_at_mouse(event.position)
+			_create_sticky_note_at_cursor(event.position)
 	
-	# Handle middle mouse drag for panning
+	# Handle panning
 	if event is InputEventMouseMotion and is_panning:
 		var delta = event.position - last_mouse_position
-		# Update scroll position directly
-		board_scroll_container.scroll_horizontal -= int(delta.x)
-		board_scroll_container.scroll_vertical -= int(delta.y)
+		
+		# Scale pan speed based on zoom level for more responsive feel
+		var pan_speed = 1.0 / zoom_level
+		board_offset += delta * pan_speed
+		
+		# Enforce canvas bounds
+		_enforce_canvas_bounds()
+		_update_board_transform()
 		last_mouse_position = event.position
 
-func _zoom_at_point(delta: float, point: Vector2):
-	"""Zoom in/out at a specific point"""
+func _is_mouse_over_viewport() -> bool:
+	"""Check if mouse is over the board viewport"""
+	var mouse_pos = get_global_mouse_position()
+	var viewport_rect = board_viewport.get_global_rect()
+	return viewport_rect.has_point(mouse_pos)
+
+func _zoom_at_cursor(delta: float, cursor_pos: Vector2):
+	"""Zoom at cursor position with strict canvas boundary constraints"""
 	var old_zoom = zoom_level
 	zoom_level = clamp(zoom_level + delta, min_zoom, max_zoom)
 	
 	if old_zoom != zoom_level:
-		# Adjust pan to zoom at mouse position
-		var zoom_ratio = zoom_level / old_zoom
-		var scroll_rect = board_scroll_container.get_rect()
-		var local_point = point - scroll_rect.position
-		pan_offset = (pan_offset + local_point / old_zoom) * zoom_ratio - local_point / zoom_level
+		# Get cursor position relative to viewport
+		var viewport_rect = board_viewport.get_global_rect()
+		var local_cursor = cursor_pos - viewport_rect.position
 		
+		# Calculate point in board space under cursor
+		var board_point = (local_cursor - board_offset) / old_zoom
+		
+		# Update transform
+		_update_board_transform()
+		
+		# Adjust offset to keep same point under cursor
+		var new_local_cursor = board_point * zoom_level + board_offset
+		var offset_correction = local_cursor - new_local_cursor
+		board_offset += offset_correction
+		
+		# Strictly enforce canvas visibility
+		_enforce_canvas_bounds()
 		_update_board_transform()
 
+func _enforce_canvas_bounds():
+	"""Strictly enforce that white canvas stays visible and centered"""
+	var viewport_size = board_viewport.size
+	var canvas_start_local = Vector2(border_size, border_size) * zoom_level
+	var canvas_size_scaled = board_size * zoom_level
+	
+	# Calculate where canvas appears in viewport
+	var canvas_screen_start = board_offset + canvas_start_local
+	var canvas_screen_end = canvas_screen_start + canvas_size_scaled
+	
+	# If canvas is smaller than viewport, center it
+	if canvas_size_scaled.x <= viewport_size.x:
+		board_offset.x = (viewport_size.x - canvas_size_scaled.x) / 2 - canvas_start_local.x
+	else:
+		# Canvas is larger, ensure it doesn't go too far off screen
+		var max_offset = canvas_size_scaled.x * 0.2  # Allow 20% to go off screen
+		if canvas_screen_start.x > max_offset:
+			board_offset.x = max_offset - canvas_start_local.x
+		elif canvas_screen_end.x < viewport_size.x - max_offset:
+			board_offset.x = viewport_size.x - max_offset - canvas_size_scaled.x - canvas_start_local.x
+	
+	if canvas_size_scaled.y <= viewport_size.y:
+		board_offset.y = (viewport_size.y - canvas_size_scaled.y) / 2 - canvas_start_local.y
+	else:
+		# Canvas is larger, ensure it doesn't go too far off screen
+		var max_offset = canvas_size_scaled.y * 0.2  # Allow 20% to go off screen
+		if canvas_screen_start.y > max_offset:
+			board_offset.y = max_offset - canvas_start_local.y
+		elif canvas_screen_end.y < viewport_size.y - max_offset:
+			board_offset.y = viewport_size.y - max_offset - canvas_size_scaled.y - canvas_start_local.y
+
+func _constrain_pan_to_canvas():
+	"""Strictly constrain panning to keep white canvas centered and visible"""
+	var viewport_size = board_viewport.size
+	var canvas_start_local = Vector2(border_size, border_size) * zoom_level
+	var canvas_size_scaled = board_size * zoom_level
+	
+	# Calculate current canvas position in viewport coordinates
+	var canvas_screen_start = board_offset + canvas_start_local
+	var canvas_screen_end = canvas_screen_start + canvas_size_scaled
+	
+	# Enforce strict bounds - never let canvas go completely outside viewport
+	var min_visible = min(canvas_size_scaled.x, canvas_size_scaled.y) * 0.3  # 30% must be visible
+	
+	# Horizontal constraints
+	if canvas_screen_end.x < min_visible:
+		# Canvas going too far left
+		board_offset.x = min_visible - canvas_size_scaled.x - canvas_start_local.x
+	elif canvas_screen_start.x > viewport_size.x - min_visible:
+		# Canvas going too far right
+		board_offset.x = viewport_size.x - min_visible - canvas_start_local.x
+	
+	# Vertical constraints
+	if canvas_screen_end.y < min_visible:
+		# Canvas going too far up
+		board_offset.y = min_visible - canvas_size_scaled.y - canvas_start_local.y
+	elif canvas_screen_start.y > viewport_size.y - min_visible:
+		# Canvas going too far down
+		board_offset.y = viewport_size.y - min_visible - canvas_start_local.y
+
 func _update_board_transform():
-	"""Update the board content transform based on zoom and pan"""
-	# With ScrollContainer, we handle zoom differently
+	"""Update board position and scale"""
 	board_content.scale = Vector2(zoom_level, zoom_level)
-	# Pan is handled by the ScrollContainer's scroll position
-	board_scroll_container.scroll_horizontal = int(-pan_offset.x)
-	board_scroll_container.scroll_vertical = int(-pan_offset.y)
+	board_content.position = board_offset
+
+func _create_sticky_note_at_cursor(cursor_pos: Vector2):
+	"""Create sticky note at cursor position - only within white canvas"""
+	# Convert global cursor position to viewport local coordinates
+	var viewport_rect = board_viewport.get_global_rect()
+	var local_cursor = cursor_pos - viewport_rect.position
 	
-	print("Board transform updated - scale: ", board_content.scale)
-	print("Scroll position: ", Vector2(board_scroll_container.scroll_horizontal, board_scroll_container.scroll_vertical))
-	print("Board content size after transform: ", board_content.size * board_content.scale)
-
-func _on_close_button_pressed():
-	"""Handle close button press"""
-	_close_case_board()
-
-func _close_case_board():
-	"""Close the case board and emit signal"""
-	emit_signal("case_board_closed")
-
-# Board content management
-func _create_sticky_note_at_mouse(mouse_position: Vector2):
-	"""Create a sticky note at the mouse position"""
-	# Convert mouse position to board space
-	var scroll_rect = board_scroll_container.get_rect()
-	var local_mouse = mouse_position - scroll_rect.position
-	var board_position = (local_mouse - pan_offset) / zoom_level
+	# Convert to board content coordinates
+	var content_pos = (local_cursor - board_offset) / zoom_level
 	
-	add_sticky_note(board_position, "New Note")
+	# Convert to canvas coordinates (subtract border offset)
+	var canvas_pos = content_pos - Vector2(border_size, border_size)
+	
+	# Check if cursor is within white canvas bounds
+	var note_size = Vector2(150, 150)
+	
+	# Ensure note will be completely within canvas
+	if (canvas_pos.x >= 0 and canvas_pos.y >= 0 and 
+		canvas_pos.x + note_size.x <= board_size.x and 
+		canvas_pos.y + note_size.y <= board_size.y):
+		add_sticky_note(canvas_pos, "New Note")
+	else:
+		print("Note must be placed completely within the white canvas area")
 
 func add_sticky_note(board_position: Vector2, note_text: String = "New Note"):
 	"""Add a sticky note to the board"""
-	print("=== Adding sticky note ===")
-	print("Board position: ", board_position)
-	print("Board content size: ", board_content.size)
-	print("Board content children before: ", board_content.get_child_count())
-	
-	# Try creating a simple colored control first
-	var simple_note = ColorRect.new()
-	simple_note.size = Vector2(150, 150)
-	simple_note.position = board_position
-	simple_note.color = Color.YELLOW
-	simple_note.z_index = 75
-	board_content.add_child(simple_note)
-	print("Added simple yellow rect")
+	# Check for existing notes and find available position
+	var final_position = _find_available_position(board_position)
 	
 	# Load sticky note scene
 	var sticky_note_scene = load("res://scenes/ui/sticky_note.tscn")
@@ -200,209 +344,154 @@ func add_sticky_note(board_position: Vector2, note_text: String = "New Note"):
 		print("ERROR: Could not instantiate sticky note!")
 		return
 	
-	print("Sticky note created successfully")
-	
-	# Set position and text
-	sticky_note.position = board_position + Vector2(200, 0)  # Offset from simple rect
-	sticky_note.z_index = 50  # Make sure it's above background
-	print("Position set to: ", sticky_note.position)
-	print("Z-index set to: ", sticky_note.z_index)
-	
+	# Set position (add border offset)
+	sticky_note.position = final_position + Vector2(border_size, border_size)
+	sticky_note.z_index = 50
 	sticky_note.set_note_text(note_text)
-	print("Text set to: ", note_text)
 	
 	# Connect signals
 	sticky_note.connect("note_moved", _on_sticky_note_moved)
 	sticky_note.connect("note_deleted", _on_sticky_note_deleted)
 	sticky_note.connect("note_edited", _on_sticky_note_edited)
-	print("Signals connected")
 	
-	# Add to board and tracking array
+	# Add to board
 	board_content.add_child(sticky_note)
 	sticky_notes.append(sticky_note)
+
+func _find_available_position(desired_position: Vector2) -> Vector2:
+	"""Find available position for new note, avoiding overlaps and staying in canvas"""
+	var note_size = Vector2(150, 150)
+	var final_position = _clamp_position_to_canvas(desired_position, note_size)
+	var offset_step = 20
+	var max_attempts = 20
+	var attempts = 0
 	
-	print("Added to board_content, child count now: ", board_content.get_child_count())
-	print("Sticky notes array size: ", sticky_notes.size())
-	print("Sticky note visible: ", sticky_note.visible)
-	print("Sticky note size: ", sticky_note.size)
-	print("=== End adding sticky note ===")
-	print("Added sticky note at ", board_position, " with text: ", note_text)
+	while attempts < max_attempts:
+		var collision_found = false
+		
+		for note in sticky_notes:
+			if note == null:
+				continue
+			var note_rect = Rect2(note.position - Vector2(border_size, border_size), note.size)
+			var test_rect = Rect2(final_position, note_size)
+			
+			if note_rect.intersects(test_rect):
+				collision_found = true
+				break
+		
+		if not collision_found:
+			break
+			
+		# Spiral outward to find space, but keep within canvas
+		var angle = attempts * 0.5
+		var radius = attempts * offset_step
+		var test_pos = desired_position + Vector2(cos(angle), sin(angle)) * radius
+		final_position = _clamp_position_to_canvas(test_pos, note_size)
+		attempts += 1
+	
+	return final_position
 
-func _on_sticky_note_moved(_note, new_position: Vector2):
-	"""Handle sticky note movement"""
-	print("Sticky note moved to: ", new_position)
-	# Auto-save could be triggered here
+# Case management functions
+func _initialize_cases():
+	"""Initialize the case system"""
+	if case_boards.is_empty():
+		var first_case = CaseData.new("Case 1")
+		case_boards.append(first_case)
+		_update_case_tabs()
 
-func _on_sticky_note_deleted(note):
-	"""Handle sticky note deletion"""
+func _update_case_tabs():
+	"""Update case tab display"""
+	# Clear existing tabs by removing children
+	for child in case_tabs_control.get_children():
+		child.queue_free()
+	
+	# Add tabs for each case
+	for i in range(case_boards.size()):
+		var tab = Control.new()
+		tab.name = case_boards[i].name
+		case_tabs_control.add_child(tab)
+	
+	# Set current tab
+	if current_case_index < case_tabs_control.get_tab_count():
+		case_tabs_control.current_tab = current_case_index
+
+# Signal handlers
+func _on_close_button_pressed():
+	_close_case_board()
+
+func _close_case_board():
+	_save_current_case_state()
+	emit_signal("case_board_closed")
+
+func _on_add_note_pressed():
+	# Place note at center of white canvas (not total board)
+	var center_pos = board_size / 2
+	add_sticky_note(center_pos, "New Note")
+
+func _on_clear_board_pressed():
+	_clear_all_notes()
+
+func _on_new_case_pressed():
+	_create_new_case()
+
+func _on_case_tab_changed(tab_index: int):
+	_switch_to_case(tab_index)
+
+func _on_sticky_note_moved(_note: StickyNote, _new_position: Vector2):
+	pass  # Auto-saved through case state
+
+func _on_sticky_note_deleted(note: StickyNote):
 	if note in sticky_notes:
 		sticky_notes.erase(note)
 	note.queue_free()
-	print("Sticky note deleted")
 
-func _on_sticky_note_edited(_note, new_text: String):
-	"""Handle sticky note text changes"""
-	print("Sticky note edited: ", new_text)
-	# Auto-save could be triggered here
+func _on_sticky_note_edited(_note: StickyNote, _new_text: String):
+	pass  # Auto-saved through case state
 
-func add_person_profile(board_position: Vector2, person_name: String = "Unknown Person"):
-	"""Add a person profile card to the board"""
-	# TODO: Implement person profile creation
-	print("Adding person profile at ", board_position, " for: ", person_name)
-
-func save_board_state():
-	"""Save the current board state to file"""
-	# TODO: Implement save functionality
-	print("Saving board state...")
-
-func load_board_state():
-	"""Load board state from file"""
-	# TODO: Implement load functionality
-	print("Loading board state...")
-
-# Case Management Functions
-func _setup_default_case():
-	"""Set up the first default case"""
-	var default_case = CaseData.new("Case 1")
-	case_boards.append(default_case)
-	current_case_index = 0
-
-func _on_add_note_pressed():
-	"""Handle add note button press"""
-	print("Add Note button pressed!")
-	
-	# Reset transforms temporarily to test
-	board_content.scale = Vector2.ONE
-	board_content.position = Vector2.ZERO
-	zoom_level = 1.0
-	pan_offset = Vector2.ZERO
-	
-	var center_position = Vector2(400, 300)  # Use a simple position instead of calculated center
-	print("Creating note at position: ", center_position)
-	print("Current zoom level: ", zoom_level)
-	print("Current pan offset: ", pan_offset)
-	print("Board content transform - scale: ", board_content.scale, " position: ", board_content.position)
-	
-	# First, try adding a simple test rectangle to see if that works
-	var test_rect = ColorRect.new()
-	test_rect.size = Vector2(100, 100)
-	test_rect.position = center_position
-	test_rect.color = Color.RED
-	test_rect.z_index = 100  # Make sure it's on top
-	board_content.add_child(test_rect)
-	print("Added test rectangle at: ", test_rect.position, " size: ", test_rect.size)
-	print("Test rectangle visible: ", test_rect.visible)
-	print("Test rectangle z_index: ", test_rect.z_index)
-	
-	# Then try adding the sticky note
-	add_sticky_note(center_position + Vector2(200, 0), "New Note")
-
-func _on_clear_board_pressed():
-	"""Handle clear board button press"""
-	# Show confirmation dialog
-	var dialog = ConfirmationDialog.new()
-	dialog.dialog_text = "Are you sure you want to clear all notes from this case board?"
-	add_child(dialog)
-	dialog.connect("confirmed", _clear_current_board)
-	dialog.popup_centered()
-
-func _clear_current_board():
-	"""Clear all notes from the current board"""
-	for note in sticky_notes:
-		if is_instance_valid(note):
-			note.queue_free()
-	sticky_notes.clear()
-	print("Board cleared")
-
-func _on_new_case_pressed():
-	"""Handle new case button press"""
-	var case_number = case_boards.size() + 1
-	var new_case = CaseData.new("Case " + str(case_number))
-	case_boards.append(new_case)
-	
-	# Add new tab to the tab container
-	var new_tab = Control.new()
-	new_tab.name = new_case.name
-	case_tabs_control.add_child(new_tab)
-	
-	# Switch to the new case
-	case_tabs_control.current_tab = case_boards.size() - 1
-	_switch_to_case(case_boards.size() - 1)
-
-func _on_case_tab_changed(tab_index: int):
-	"""Handle case tab change"""
-	if tab_index >= 0 and tab_index < case_boards.size():
-		_switch_to_case(tab_index)
-
-func _switch_to_case(case_index: int):
-	"""Switch to a different case board"""
-	if case_index < 0 or case_index >= case_boards.size():
-		return
-	
-	# Save current case state
+# Case management implementation
+func _create_new_case():
+	var case_name = "Case " + str(case_boards.size() + 1)
 	_save_current_case_state()
 	
-	# Clear current board
-	for note in sticky_notes:
-		if is_instance_valid(note):
-			note.queue_free()
-	sticky_notes.clear()
+	var new_case = CaseData.new(case_name)
+	case_boards.append(new_case)
+	current_case_index = case_boards.size() - 1
 	
-	# Load new case state
-	current_case_index = case_index
-	_load_case_state(case_index)
+	_clear_all_notes()
+	_update_case_tabs()
+
+func _switch_to_case(case_index: int):
+	if case_index >= 0 and case_index < case_boards.size():
+		_save_current_case_state()
+		current_case_index = case_index
+		_load_case_state(case_boards[current_case_index])
 
 func _save_current_case_state():
-	"""Save the current case state to the case data"""
 	if current_case_index >= 0 and current_case_index < case_boards.size():
-		var current_case = case_boards[current_case_index]
-		current_case.notes.clear()
+		var case_data = case_boards[current_case_index]
+		case_data.notes.clear()
 		
-		# Save sticky note data using the proper methods
 		for note in sticky_notes:
-			if is_instance_valid(note):
-				var note_data = note.get_save_data()
-				current_case.notes.append(note_data)
+			if note and is_instance_valid(note):
+				case_data.notes.append(note.get_save_data())
 
-func _load_case_state(case_index: int):
-	"""Load a case state from case data"""
-	if case_index < 0 or case_index >= case_boards.size():
-		return
+func _load_case_state(case_data: CaseData):
+	_clear_all_notes()
 	
-	var case_data = case_boards[case_index]
-	
-	# Recreate sticky notes using the proper methods
 	for note_data in case_data.notes:
-		var sticky_note_scene = preload("res://scenes/ui/sticky_note.tscn")
-		var sticky_note = sticky_note_scene.instantiate()
+		var note_pos = note_data.get("position", Vector2.ZERO)
+		note_pos -= Vector2(border_size, border_size)  # Adjust for border
 		
-		# Load the note data
-		sticky_note.load_from_data(note_data)
+		var note_text = note_data.get("text", "")
+		add_sticky_note(note_pos, note_text)
 		
-		# Connect signals
-		sticky_note.connect("note_moved", _on_sticky_note_moved)
-		sticky_note.connect("note_deleted", _on_sticky_note_deleted)
-		sticky_note.connect("note_edited", _on_sticky_note_edited)
-		
-		# Add to board and tracking array
-		board_content.add_child(sticky_note)
-		sticky_notes.append(sticky_note)
+		if not sticky_notes.is_empty():
+			var last_note = sticky_notes[-1]
+			if note_data.has("color_index"):
+				last_note.set_note_color(note_data["color_index"])
 
-func _create_sticky_note_at_position(note_position: Vector2, text: String = "", _color: Color = Color.YELLOW):
-	"""Create a sticky note at a specific position"""
-	var sticky_note_scene = preload("res://scenes/ui/sticky_note.tscn")
-	var sticky_note = sticky_note_scene.instantiate()
-	
-	# Configure the note
-	sticky_note.position = note_position
-	sticky_note.set_note_text(text)
-	# Note: Color will be handled by color index, not direct Color value
-	
-	# Connect signals
-	sticky_note.connect("note_moved", _on_sticky_note_moved)
-	sticky_note.connect("note_deleted", _on_sticky_note_deleted)
-	sticky_note.connect("note_edited", _on_sticky_note_edited)
-	
-	# Add to board and tracking array
-	board_content.add_child(sticky_note)
-	sticky_notes.append(sticky_note)
+func _clear_all_notes():
+	for note in sticky_notes:
+		if note and is_instance_valid(note):
+			note.queue_free()
+	sticky_notes.clear()
