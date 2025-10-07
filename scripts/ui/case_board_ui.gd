@@ -79,6 +79,7 @@ static var has_session_data: bool = false
 class CaseData:
 	var name: String
 	var notes: Array = []
+	var connections: Array = []  # Connection string data
 	var board_data: Dictionary = {}
 	
 	func _init(case_name: String):
@@ -223,10 +224,12 @@ func _input(event):
 			_cancel_connection_creation()
 		else:
 			_close_case_board()
+		# Prevent ESC from propagating to the game state menu
+		get_viewport().set_input_as_handled()
 		return
 	
-	# Handle keyboard panning (alternative to mouse panning)
-	if event is InputEventKey:
+	# Handle keyboard panning (alternative to mouse panning) - but not during text editing
+	if event is InputEventKey and not is_text_editing:
 		_handle_keyboard_panning(event)
 	
 	# Handle tab input for renaming
@@ -243,6 +246,11 @@ func _input(event):
 	# Handle zoom and panning
 	if not _is_mouse_over_viewport():
 		return
+	
+	# Handle click to defocus text editing (only on the board area)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if is_text_editing:
+			_defocus_all_text_editing()
 	
 	# Handle zoom
 	if event is InputEventMouseButton:
@@ -743,7 +751,9 @@ func _create_new_case():
 	case_boards.append(new_case)
 	current_case_index = case_boards.size() - 1
 	
+	# Clear both notes and connections for the new case
 	_clear_all_notes()
+	_clear_all_connections()
 	_update_case_tabs()
 	needs_save = true  # Mark for save
 	
@@ -760,58 +770,130 @@ func _switch_to_case(case_index: int):
 func _save_current_case_state():
 	if current_case_index >= 0 and current_case_index < case_boards.size():
 		var case_data = case_boards[current_case_index]
-		print("Saving to case %d ('%s'): %d notes found" % [current_case_index, case_data.name, sticky_notes.size()])
+		print("Saving to case %d ('%s'): %d notes, %d connections found" % [current_case_index, case_data.name, sticky_notes.size(), _count_connections()])
 		case_data.notes.clear()
+		case_data.connections.clear()
 		
+		# Save notes
 		for note in sticky_notes:
 			if note and is_instance_valid(note):
 				var note_data = note.get_save_data()
 				case_data.notes.append(note_data)
-				print("Saved note: '%s' at %s" % [note_data.text, note_data.position])
+				print("Saved note: '%s' (ID: %s) at %s" % [note_data.text, note_data.id, note_data.position])
+		
+		# Save connections
+		for child in board_control.get_children():
+			if child is ConnectionString:
+				var connection = child as ConnectionString
+				var connection_data = connection.get_save_data()
+				if connection_data:  # Only save valid connections
+					case_data.connections.append(connection_data)
+					print("Saved connection between notes %s and %s" % [connection_data.source_id, connection_data.target_id])
 	else:
 		print("ERROR: Cannot save case state - invalid case index %d" % current_case_index)
 
 func _load_case_state(case_data: CaseData):
 	is_loading = true  # Prevent auto-save during loading
 	_clear_all_notes()
+	_clear_all_connections()
 	
-	print("Loading case '%s': %d notes to restore" % [case_data.name, case_data.notes.size()])
+	print("Loading case '%s': %d notes, %d connections to restore" % [case_data.name, case_data.notes.size(), case_data.connections.size()])
+	
+	# First load all notes
+	var notes_by_id: Dictionary = {}
 	for note_data in case_data.notes:
-		# Handle position data - could be Vector2 or string representation
-		var note_pos = Vector2.ZERO
-		var pos_data = note_data.get("position", Vector2.ZERO)
-		
-		if pos_data is Vector2:
-			note_pos = pos_data
-		elif pos_data is Dictionary and pos_data.has("x") and pos_data.has("y"):
-			# JSON converts Vector2 to dictionary with x, y keys
-			note_pos = Vector2(pos_data["x"], pos_data["y"])
-		elif pos_data is String:
-			# Handle string representation like "(200, 150)"
-			var cleaned = pos_data.strip_edges().replace("(", "").replace(")", "")
-			var parts = cleaned.split(",")
-			if parts.size() >= 2:
-				note_pos = Vector2(float(parts[0].strip_edges()), float(parts[1].strip_edges()))
-		else:
-			print("Warning: Invalid position data type: %s" % typeof(pos_data))
-			note_pos = Vector2.ZERO
-		
-		var note_text = note_data.get("text", "")
-		print("Loading note: '%s' at %s" % [note_text, note_pos])
-		add_sticky_note(note_pos, note_text)
-		
+		# Create note at default position first
+		add_sticky_note(Vector2.ZERO, "")
+		# Get the note that was just created and load its data (including position)
 		if not sticky_notes.is_empty():
-			var last_note = sticky_notes[-1]
-			if note_data.has("color_index"):
-				last_note.set_note_color(note_data["color_index"])
-	print("Case '%s' loaded: %d notes restored" % [case_data.name, sticky_notes.size()])
+			var note = sticky_notes[-1]
+			note.load_from_data(note_data)
+			notes_by_id[note.note_id] = note  # Map for connection loading
+			print("Loaded note: '%s' with ID %s" % [note_data.get("text", ""), note.note_id])
+	
+	# Debug: Print the notes_by_id mapping
+	print("Note ID mapping for connections:")
+	for id in notes_by_id.keys():
+		print("  ID: %s -> Note with text: '%s'" % [id, notes_by_id[id].get_note_text()])
+	
+	# Then load all connections with deduplication
+	var loaded_connections: Array[String] = []  # Track loaded connection pairs
+	
+	for connection_data in case_data.connections:
+		print("Loading connection data: source=%s, target=%s" % [connection_data.source_id, connection_data.target_id])
+		
+		# Create a normalized connection key (smaller ID first to detect bidirectional duplicates)
+		var connection_key = ""
+		if connection_data.source_id < connection_data.target_id:
+			connection_key = connection_data.source_id + "->" + connection_data.target_id
+		else:
+			connection_key = connection_data.target_id + "->" + connection_data.source_id
+		
+		# Skip if we've already loaded this connection pair
+		if loaded_connections.has(connection_key):
+			print("Skipping duplicate connection: %s" % connection_key)
+			continue
+		
+		loaded_connections.append(connection_key)
+		
+		# Verify both notes exist
+		if not notes_by_id.has(connection_data.source_id):
+			print("ERROR: Source note ID %s not found in notes_by_id" % connection_data.source_id)
+			continue
+		if not notes_by_id.has(connection_data.target_id):
+			print("ERROR: Target note ID %s not found in notes_by_id" % connection_data.target_id)
+			continue
+			
+		var connection_string = preload("res://scripts/ui/connection_string.gd").new()
+		board_control.add_child(connection_string)
+		connection_string.load_from_data(connection_data, notes_by_id)
+		print("Loaded connection between %s and %s" % [connection_data.source_id, connection_data.target_id])
+	
+	print("Case '%s' loaded: %d notes, %d connections restored" % [case_data.name, sticky_notes.size(), _count_connections()])
 	is_loading = false  # Re-enable auto-save
+
+func _count_connections() -> int:
+	"""Count the number of connection strings in the current case"""
+	var count = 0
+	for child in board_control.get_children():
+		if child is ConnectionString:
+			count += 1
+	return count
+
+func _clear_all_connections():
+	"""Clear all connection strings from the board"""
+	for child in board_control.get_children():
+		if child is ConnectionString:
+			child.queue_free()
 
 func _clear_all_notes():
 	for note in sticky_notes:
 		if note and is_instance_valid(note):
 			note.queue_free()
 	sticky_notes.clear()
+
+func _copy_case_data_to(source_case: CaseData, target_case: CaseData):
+	"""Shared method to copy all case data including notes and connections"""
+	target_case.notes = source_case.notes.duplicate(true)
+	target_case.connections = source_case.connections.duplicate(true)
+	target_case.board_data = source_case.board_data.duplicate(true)
+
+func _create_case_save_dict(case_data: CaseData) -> Dictionary:
+	"""Shared method to create save dictionary including all case data"""
+	return {
+		"name": case_data.name,
+		"notes": case_data.notes.duplicate(),
+		"connections": case_data.connections.duplicate(),
+		"board_data": case_data.board_data.duplicate()
+	}
+
+func _load_case_from_dict(case_info: Dictionary) -> CaseData:
+	"""Shared method to load case data from dictionary including all data"""
+	var case_data = CaseData.new(case_info["name"])
+	case_data.notes = case_info.get("notes", []).duplicate()
+	case_data.connections = case_info.get("connections", []).duplicate()
+	case_data.board_data = case_info.get("board_data", {}).duplicate()
+	return case_data
 
 # Save/Load functionality
 func _save_session_state():
@@ -825,10 +907,9 @@ func _save_session_state():
 	for i in range(case_boards.size()):
 		var case_data = case_boards[i]
 		var session_case = CaseData.new(case_data.name)
-		session_case.notes = case_data.notes.duplicate(true)
-		session_case.board_data = case_data.board_data.duplicate(true)
+		_copy_case_data_to(case_data, session_case)
 		CaseBoardUI.session_case_boards.append(session_case)
-		print("Saved session case %d: '%s' with %d notes" % [i, case_data.name, case_data.notes.size()])
+		print("Saved session case %d: '%s' with %d notes, %d connections" % [i, case_data.name, case_data.notes.size(), case_data.connections.size()])
 	
 	CaseBoardUI.session_current_case_index = current_case_index
 	CaseBoardUI.has_session_data = true
@@ -841,8 +922,7 @@ func _load_from_session_state():
 	# Deep copy session data back to current state
 	for session_case in CaseBoardUI.session_case_boards:
 		var case_data = CaseData.new(session_case.name)
-		case_data.notes = session_case.notes.duplicate(true)
-		case_data.board_data = session_case.board_data.duplicate(true)
+		_copy_case_data_to(session_case, case_data)
 		case_boards.append(case_data)
 	
 	current_case_index = CaseBoardUI.session_current_case_index
@@ -874,8 +954,12 @@ func _case_has_content(case_data: CaseData) -> bool:
 	if case_data.notes.size() > 0:
 		return true
 	
+	# Save if case has any connections
+	if case_data.connections.size() > 0:
+		return true
+	
 	# Save if case has any board data
-	if not case_data.board_data.is_empty():
+	if case_data.board_data.size() > 0:
 		return true
 	
 	return false
@@ -914,13 +998,9 @@ func _save_case_board_data():
 	print("Saving %d meaningful cases to disk:" % meaningful_cases.size())
 	for i in range(meaningful_cases.size()):
 		var case_data = meaningful_cases[i]
-		var case_save_data = {
-			"name": case_data.name,
-			"notes": case_data.notes.duplicate(),
-			"board_data": case_data.board_data.duplicate()
-		}
+		var case_save_data = _create_case_save_dict(case_data)
 		save_data["cases"].append(case_save_data)
-		print("  Case %d: '%s' with %d notes" % [i, case_data.name, case_data.notes.size()])
+		print("  Case %d: '%s' with %d notes, %d connections" % [i, case_data.name, case_data.notes.size(), case_data.connections.size()])
 	
 	# Write to file
 	var file = FileAccess.open(save_file_path, FileAccess.WRITE)
@@ -979,11 +1059,9 @@ func _load_case_board_data():
 	case_boards.clear()
 	for i in range(save_data["cases"].size()):
 		var case_info = save_data["cases"][i]
-		var case_data = CaseData.new(case_info["name"])
-		case_data.notes = case_info["notes"].duplicate()
-		case_data.board_data = case_info.get("board_data", {}).duplicate()
+		var case_data = _load_case_from_dict(case_info)
 		case_boards.append(case_data)
-		print("Loaded case %d: '%s' with %d notes" % [i, case_data.name, case_data.notes.size()])
+		print("Loaded case %d: '%s' with %d notes, %d connections" % [i, case_data.name, case_data.notes.size(), case_data.connections.size()])
 	
 	# Set current case index
 	current_case_index = save_data["current_case_index"]
@@ -1018,10 +1096,11 @@ func _auto_save_case_state():
 	"""Auto-save case state after changes"""
 	if is_loading or not needs_save:
 		return  # Don't auto-save during loading or if no changes
-	_save_current_case_state()
-	_save_all_game_data()
+	
+	_save_current_case_state()  # Save current case including connections
+	_save_case_board_data()  # Save to disk
 	needs_save = false
-	print("Auto-save completed")
+	print("Auto-save completed with connections")
 
 func _on_auto_save_timer_timeout():
 	"""Called every 5 minutes to auto-save"""
@@ -1113,6 +1192,14 @@ func _bezier_quadratic(p0: Vector2, p1: Vector2, p2: Vector2, t: float) -> Vecto
 func _create_connection(source: StickyNote, target: StickyNote):
 	"""Create a visual connection between two notes"""
 	print("Creating connection between notes: ", source.note_id, " -> ", target.note_id)
+	
+	# Check if connection already exists in either direction
+	for existing_connection in connections:
+		if (existing_connection.source_note == source and existing_connection.target_note == target) or \
+		   (existing_connection.source_note == target and existing_connection.target_note == source):
+			print("Connection already exists between these notes, skipping duplicate")
+			return
+	
 	var connection = ConnectionString.new()
 	connection.setup_connection(source, target)
 	# Connect to deletion signal to clean up from connections array
@@ -1121,9 +1208,12 @@ func _create_connection(source: StickyNote, target: StickyNote):
 	connections.append(connection)
 	print("Connection added. Total connections: ", connections.size())
 	
-	# Add connection to both notes
+	# Add connection to both notes (for tracking purposes)
 	source.add_connection(target)
 	target.add_connection(source)
+	
+	# Mark that we need to save the updated state
+	needs_save = true
 
 func _cancel_connection_creation():
 	"""Cancel connection creation mode"""
@@ -1144,7 +1234,15 @@ func _on_text_edit_finished():
 	"""Handle when a note finishes text editing"""
 	is_text_editing = false
 
+func _defocus_all_text_editing():
+	"""Remove focus from all text editing fields"""
+	for note in sticky_notes:
+		if note and is_instance_valid(note) and note.text_edit and note.text_edit.has_focus():
+			note.text_edit.release_focus()
+
 func _on_connection_deleted(connection: ConnectionString):
 	"""Handle when a connection is deleted"""
 	if connection in connections:
 		connections.erase(connection)
+		needs_save = true  # Mark that we need to save the updated state
+		print("Connection deleted. Total connections: ", connections.size())

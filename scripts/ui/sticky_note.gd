@@ -55,8 +55,13 @@ func _ready():
 
 func _setup_note():
 	"""Initialize the sticky note appearance and behavior"""
-	# Generate unique ID
-	note_id = "note_" + str(Time.get_time_dict_from_system().hash())
+	# Generate unique ID using timestamp + random component for better uniqueness
+	var timestamp = Time.get_time_dict_from_system()
+	var unique_part = str(timestamp.hour) + str(timestamp.minute) + str(timestamp.second)
+	var random_part = str(randi() % 1000000)  # Add random component
+	var microsecond_part = str(Time.get_ticks_usec() % 1000000)  # Use microseconds for additional uniqueness
+	note_id = "note_" + unique_part + "_" + microsecond_part + "_" + random_part
+	print("Generated new note ID: %s" % note_id)
 	
 	# Set initial size
 	custom_minimum_size = Vector2(150, 150)
@@ -371,11 +376,36 @@ func _on_text_edit_focus_exited():
 
 func load_from_data(data: Dictionary):
 	"""Load note from saved data"""
+	var old_id = note_id
 	if data.has("id"):
 		note_id = data["id"]
+		print("Note ID changed from %s to %s" % [old_id, note_id])
+	else:
+		print("No ID in save data, keeping generated ID: %s" % note_id)
 	if data.has("text"):
 		set_note_text(data["text"])
 	if data.has("position"):
-		global_position = data["position"]
+		# Handle different position data formats
+		var pos_data = data["position"]
+		var note_position: Vector2
+		
+		if pos_data is Vector2:
+			note_position = pos_data
+		elif pos_data is Dictionary and pos_data.has("x") and pos_data.has("y"):
+			# Handle dictionary format (from JSON serialization)
+			note_position = Vector2(pos_data["x"], pos_data["y"])
+		elif pos_data is String:
+			# Handle string representation like "(200, 150)"
+			var cleaned = pos_data.strip_edges().replace("(", "").replace(")", "")
+			var parts = cleaned.split(",")
+			if parts.size() >= 2:
+				note_position = Vector2(float(parts[0].strip_edges()), float(parts[1].strip_edges()))
+			else:
+				note_position = Vector2.ZERO
+		else:
+			print("Warning: Invalid position data type for note %s: %s" % [note_id, typeof(pos_data)])
+			note_position = Vector2.ZERO
+		
+		position = note_position + Vector2(50, 50)  # Add border offset that was subtracted during save
 	if data.has("color_index"):
 		set_note_color(data["color_index"])

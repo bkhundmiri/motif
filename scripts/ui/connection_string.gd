@@ -90,6 +90,13 @@ func _setup_manipulation_system():
 
 func setup_connection(from_note: StickyNote, to_note: StickyNote):
 	"""Set up connection between two notes"""
+	print("setup_connection called: from='%s' (ID: %s) to='%s' (ID: %s)" % [
+		from_note.get_note_text() if from_note else "null", 
+		from_note.note_id if from_note else "null",
+		to_note.get_note_text() if to_note else "null",
+		to_note.note_id if to_note else "null"
+	])
+	
 	source_note = from_note
 	target_note = to_note
 	
@@ -104,10 +111,12 @@ func setup_connection(from_note: StickyNote, to_note: StickyNote):
 	
 	# Initial update
 	_update_connection_points()
+	print("setup_connection completed, connection points updated")
 
 func _update_connection_points():
 	"""Update the connection points based on note positions"""
 	if not source_note or not target_note:
+		print("_update_connection_points: Missing notes (source: %s, target: %s)" % [source_note != null, target_note != null])
 		return
 	
 	# Get the closest anchor points between the two notes in parent coordinate space
@@ -804,6 +813,9 @@ func _on_control_node_moved(_node: Control, _new_position: Vector2):
 
 func _on_control_node_released(_node: Control):
 	"""Handle control node release"""
+	# Remove any clustered anchors first
+	_remove_clustered_anchors()
+	
 	# Update anchors intelligently after release
 	_update_anchors_intelligently(true)  # true = from curve reshaping
 	
@@ -876,6 +888,14 @@ func _on_note_deleted(_note: StickyNote):
 
 func get_save_data() -> Dictionary:
 	"""Get data for saving this connection"""
+	var control_node_data = []
+	for node in control_nodes:
+		if is_instance_valid(node):
+			control_node_data.append({
+				"x": node.position.x,
+				"y": node.position.y
+			})
+	
 	return {
 		"source_id": source_note.note_id if source_note else "",
 		"target_id": target_note.note_id if target_note else "",
@@ -884,18 +904,96 @@ func get_save_data() -> Dictionary:
 			"g": connection_color.g,
 			"b": connection_color.b,
 			"a": connection_color.a
-		}
-	}
+	},
+	"control_nodes": control_node_data
+}
 
 func load_from_data(data: Dictionary, notes_by_id: Dictionary):
 	"""Load connection from saved data"""
+	print("ConnectionString.load_from_data called with data: %s" % str(data))
+	
 	if data.has("source_id") and data.has("target_id"):
 		var source_id = data["source_id"]
 		var target_id = data["target_id"]
 		
+		print("Looking for notes: source_id=%s, target_id=%s" % [source_id, target_id])
+		print("Available note IDs: %s" % str(notes_by_id.keys()))
+		
 		if notes_by_id.has(source_id) and notes_by_id.has(target_id):
-			setup_connection(notes_by_id[source_id], notes_by_id[target_id])
+			var src_note = notes_by_id[source_id]
+			var tgt_note = notes_by_id[target_id]
+			print("Found both notes: source='%s', target='%s'" % [src_note.get_note_text(), tgt_note.get_note_text()])
+			setup_connection(src_note, tgt_note)
+		else:
+			print("ERROR: Could not find one or both notes for connection")
+			if not notes_by_id.has(source_id):
+				print("  Missing source note with ID: %s" % source_id)
+			if not notes_by_id.has(target_id):
+				print("  Missing target note with ID: %s" % target_id)
+			return
 	
 	if data.has("color"):
 		var color_data = data["color"]
 		connection_color = Color(color_data.r, color_data.g, color_data.b, color_data.a)
+	
+	# Restore control nodes
+	if data.has("control_nodes"):
+		print("Restoring %d control nodes" % data["control_nodes"].size())
+		for node_data in data["control_nodes"]:
+			var node_pos = Vector2(node_data.x, node_data.y)
+			_create_control_node_at_position_direct(node_pos)
+		
+		# Recalculate curve after loading all nodes
+		_calculate_curve_points()
+		_update_collision_area()
+	
+	# Force a redraw to ensure the connection is visible
+	queue_redraw()
+	print("Connection loading completed and redraw queued")
+
+func _create_control_node_at_position_direct(node_pos: Vector2):
+	"""Create a control node directly at a position (used for loading)"""
+	var control_node = preload("res://scripts/ui/control_node.gd").new()
+	control_node.position = node_pos
+	control_node.visible = false  # Hidden by default
+	control_node.connect("node_moved", _on_control_node_moved)
+	control_node.connect("node_released", _on_control_node_released)
+	
+	# Add to parent and our control nodes array
+	get_parent().add_child(control_node)
+	control_nodes.append(control_node)
+	
+	# Insert node at correct position in the curve sequence
+	_insert_control_node_in_sequence(control_node, node_pos)
+
+func _remove_clustered_anchors():
+	"""Remove control nodes that are too close to each other to prevent malformation"""
+	if control_nodes.size() < 2:
+		return
+	
+	var min_cluster_distance = 40.0  # Minimum distance between control nodes
+	var nodes_to_remove: Array[Control] = []
+	
+	# Check each pair of nodes for clustering
+	for i in range(control_nodes.size()):
+		for j in range(i + 1, control_nodes.size()):
+			var node_a = control_nodes[i]
+			var node_b = control_nodes[j]
+			
+			if is_instance_valid(node_a) and is_instance_valid(node_b):
+				var distance = node_a.position.distance_to(node_b.position)
+				if distance < min_cluster_distance:
+					# Remove the node that was added later (higher index)
+					if node_b not in nodes_to_remove:
+						nodes_to_remove.append(node_b)
+	
+	# Remove clustered nodes
+	for node in nodes_to_remove:
+		control_nodes.erase(node)
+		node.queue_free()
+	
+	# Recalculate curve if nodes were removed
+	if nodes_to_remove.size() > 0:
+		print("Removed %d clustered control nodes" % nodes_to_remove.size())
+		_calculate_curve_points()
+		_update_collision_area()
