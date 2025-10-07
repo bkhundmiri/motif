@@ -94,12 +94,6 @@ func _unhandled_input(event):
 	if game_manager and game_manager.ui_open:
 		return
 	
-	# Additional input handling for detective-specific actions
-	if event.is_action_pressed("interact"):
-		interact_with_object()
-	
-	if event.is_action_pressed("inventory"):
-		toggle_inventory()
 
 func _physics_process(delta):
 	# Block movement when UI is open
@@ -141,13 +135,3 @@ func _physics_process(delta):
 	
 	# Move the character
 	move_and_slide()
-
-func interact_with_object():
-	# Placeholder for interaction system
-	# Will be expanded for examining clues, evidence, etc.
-	print("Interaction detected - ready for clue examination system")
-
-func toggle_inventory():
-	# Placeholder for inventory system
-	# Will be expanded for case files, evidence management
-	print("Inventory toggled - ready for evidence management system")

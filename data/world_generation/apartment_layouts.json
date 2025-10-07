@@ -1,0 +1,166 @@
+{
+  "apartment_layouts": {
+    "studio": {
+      "id": "studio",
+      "name": "Studio Apartment",
+      "size": {"width": 6, "depth": 8},
+      "room_count": 1,
+      "bathroom_count": 1,
+      "rent_range": {"min": 800, "max": 1200},
+      "color": {"wall": [0.9, 0.8, 0.7], "floor": [0.8, 0.7, 0.6]},
+      "layout": {
+        "entry": {"x": 0, "y": 0, "width": 1.5, "depth": 1},
+        "main_room": {"x": 1.5, "y": 0, "width": 4.5, "depth": 6},
+        "kitchen": {"x": 0, "y": 1, "width": 1.5, "depth": 3},
+        "bathroom": {"x": 0, "y": 4, "width": 1.5, "depth": 2},
+        "balcony": {"x": 1.5, "y": 6, "width": 4.5, "depth": 2}
+      },
+      "furniture": {
+        "main_room": ["bed", "desk", "chair", "dresser", "tv_stand"],
+        "kitchen": ["stove", "refrigerator", "counter", "sink"],
+        "bathroom": ["toilet", "sink", "shower"]
+      },
+      "windows": [
+        {"wall": "north", "position": 0.3, "size": "large"},
+        {"wall": "north", "position": 0.7, "size": "large"}
+      ]
+    },
+    "one_bedroom": {
+      "id": "one_bedroom",
+      "name": "One Bedroom",
+      "size": {"width": 8, "depth": 10},
+      "room_count": 2,
+      "bathroom_count": 1,
+      "rent_range": {"min": 1200, "max": 1800},
+      "color": {"wall": [0.7, 0.9, 0.8], "floor": [0.6, 0.8, 0.7]},
+      "layout": {
+        "entry": {"x": 0, "y": 0, "width": 1.5, "depth": 1.5},
+        "living_room": {"x": 1.5, "y": 0, "width": 5, "depth": 5},
+        "kitchen": {"x": 6.5, "y": 0, "width": 1.5, "depth": 4},
+        "bedroom": {"x": 1.5, "y": 5, "width": 4, "depth": 5},
+        "bathroom": {"x": 5.5, "y": 5, "width": 1.5, "depth": 2.5},
+        "closet": {"x": 5.5, "y": 7.5, "width": 1.5, "depth": 2.5},
+        "balcony": {"x": 6.5, "y": 4, "width": 1.5, "depth": 6}
+      },
+      "furniture": {
+        "living_room": ["sofa", "coffee_table", "tv_stand", "bookshelf"],
+        "kitchen": ["stove", "refrigerator", "counter", "sink", "dining_table"],
+        "bedroom": ["bed", "nightstand", "dresser", "desk"],
+        "bathroom": ["toilet", "sink", "shower"]
+      },
+      "windows": [
+        {"wall": "north", "position": 0.2, "size": "large"},
+        {"wall": "north", "position": 0.8, "size": "large"},
+        {"wall": "east", "position": 0.5, "size": "medium"}
+      ]
+    },
+    "two_bedroom": {
+      "id": "two_bedroom",
+      "name": "Two Bedroom",
+      "size": {"width": 10, "depth": 12},
+      "room_count": 3,
+      "bathroom_count": 2,
+      "rent_range": {"min": 1800, "max": 2800},
+      "color": {"wall": [0.8, 0.7, 0.9], "floor": [0.7, 0.6, 0.8]},
+      "layout": {
+        "entry": {"x": 0, "y": 0, "width": 2, "depth": 1.5},
+        "living_room": {"x": 2, "y": 0, "width": 6, "depth": 6},
+        "kitchen": {"x": 8, "y": 0, "width": 2, "depth": 5},
+        "dining_room": {"x": 8, "y": 5, "width": 2, "depth": 3},
+        "master_bedroom": {"x": 0, "y": 1.5, "width": 5, "depth": 6},
+        "second_bedroom": {"x": 5, "y": 1.5, "width": 3, "depth": 4.5},
+        "master_bathroom": {"x": 0, "y": 7.5, "width": 2.5, "depth": 2.5},
+        "guest_bathroom": {"x": 2.5, "y": 7.5, "width": 2.5, "depth": 2.5},
+        "closet_1": {"x": 0, "y": 10, "width": 2, "depth": 2},
+        "closet_2": {"x": 5, "y": 6, "width": 3, "depth": 1.5},
+        "balcony": {"x": 2, "y": 6, "width": 6, "depth": 2},
+        "utility": {"x": 8, "y": 8, "width": 2, "depth": 4}
+      },
+      "furniture": {
+        "living_room": ["sectional_sofa", "coffee_table", "tv_stand", "bookshelf", "side_table"],
+        "kitchen": ["stove", "refrigerator", "counter", "sink", "island"],
+        "dining_room": ["dining_table", "chairs", "buffet"],
+        "master_bedroom": ["king_bed", "nightstand", "dresser", "armchair"],
+        "second_bedroom": ["queen_bed", "nightstand", "desk", "chair"],
+        "master_bathroom": ["toilet", "double_sink", "bathtub", "shower"],
+        "guest_bathroom": ["toilet", "sink", "shower"]
+      },
+      "windows": [
+        {"wall": "north", "position": 0.15, "size": "large"},
+        {"wall": "north", "position": 0.5, "size": "large"},
+        {"wall": "north", "position": 0.85, "size": "large"},
+        {"wall": "east", "position": 0.3, "size": "medium"},
+        {"wall": "east", "position": 0.7, "size": "medium"}
+      ]
+    },
+    "penthouse": {
+      "id": "penthouse",
+      "name": "Penthouse Suite",
+      "size": {"width": 15, "depth": 18},
+      "room_count": 4,
+      "bathroom_count": 3,
+      "rent_range": {"min": 4000, "max": 8000},
+      "color": {"wall": [0.9, 0.9, 0.7], "floor": [0.8, 0.8, 0.6]},
+      "special_features": ["rooftop_access", "private_elevator", "panoramic_windows"],
+      "layout": {
+        "entry_foyer": {"x": 0, "y": 0, "width": 3, "depth": 2},
+        "great_room": {"x": 3, "y": 0, "width": 9, "depth": 9},
+        "kitchen": {"x": 12, "y": 0, "width": 3, "depth": 6},
+        "dining_room": {"x": 9, "y": 9, "width": 6, "depth": 4},
+        "master_suite": {"x": 0, "y": 2, "width": 8, "depth": 9},
+        "guest_bedroom_1": {"x": 0, "y": 11, "width": 5, "depth": 7},
+        "guest_bedroom_2": {"x": 5, "y": 11, "width": 4, "depth": 7},
+        "home_office": {"x": 8, "y": 2, "width": 4, "depth": 5},
+        "master_bathroom": {"x": 8, "y": 7, "width": 4, "depth": 4},
+        "guest_bathroom_1": {"x": 12, "y": 9, "width": 3, "depth": 3},
+        "guest_bathroom_2": {"x": 12, "y": 6, "width": 3, "depth": 3},
+        "walk_in_closet": {"x": 12, "y": 2, "width": 3, "depth": 4},
+        "terrace": {"x": 3, "y": 9, "width": 6, "depth": 9},
+        "utility_room": {"x": 12, "y": 12, "width": 3, "depth": 3},
+        "wine_cellar": {"x": 9, "y": 13, "width": 3, "depth": 5}
+      },
+      "furniture": {
+        "great_room": ["luxury_sectional", "coffee_table", "entertainment_center", "piano", "art_pieces"],
+        "kitchen": ["professional_stove", "wine_fridge", "large_island", "premium_appliances"],
+        "dining_room": ["formal_dining_table", "dining_chairs", "china_cabinet", "chandelier"],
+        "master_suite": ["king_bed", "sitting_area", "fireplace", "premium_furniture"],
+        "home_office": ["executive_desk", "leather_chair", "bookshelf", "filing_cabinet"]
+      },
+      "windows": [
+        {"wall": "north", "position": 0.1, "size": "floor_to_ceiling"},
+        {"wall": "north", "position": 0.3, "size": "floor_to_ceiling"},
+        {"wall": "north", "position": 0.5, "size": "floor_to_ceiling"},
+        {"wall": "north", "position": 0.7, "size": "floor_to_ceiling"},
+        {"wall": "north", "position": 0.9, "size": "floor_to_ceiling"},
+        {"wall": "east", "position": 0.2, "size": "large"},
+        {"wall": "east", "position": 0.5, "size": "large"},
+        {"wall": "east", "position": 0.8, "size": "large"}
+      ]
+    }
+  },
+  "layout_modifiers": {
+    "corner_unit": {
+      "description": "Corner apartment with windows on two sides",
+      "rent_multiplier": 1.15,
+      "additional_windows": [
+        {"wall": "west", "position": 0.5, "size": "medium"}
+      ]
+    },
+    "top_floor": {
+      "description": "Top floor with higher ceilings",
+      "rent_multiplier": 1.2,
+      "ceiling_height_bonus": 0.5,
+      "special_features": ["skylights", "rooftop_access"]
+    },
+    "garden_level": {
+      "description": "Ground floor with private entrance",
+      "rent_multiplier": 0.9,
+      "special_features": ["private_entrance", "patio"]
+    },
+    "luxury_finishes": {
+      "description": "Premium materials and fixtures",
+      "rent_multiplier": 1.3,
+      "furniture_upgrade": "luxury"
+    }
+  }
+}

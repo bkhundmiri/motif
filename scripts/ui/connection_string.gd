@@ -119,13 +119,19 @@ func _update_connection_points():
 		print("_update_connection_points: Missing notes (source: %s, target: %s)" % [source_note != null, target_note != null])
 		return
 	
+	print("_update_connection_points: Updating connection between notes at positions %s and %s" % [source_note.position, target_note.position])
+	
 	# Get the closest anchor points between the two notes in parent coordinate space
 	var source_center = source_note.position + (source_note.size / 2.0)
 	var target_center = target_note.position + (target_note.size / 2.0)
 	
+	print("_update_connection_points: Centers - source: %s, target: %s" % [source_center, target_center])
+	
 	# Get anchor points in parent's coordinate system
 	source_point = source_note.get_closest_anchor_point(target_center)
 	target_point = target_note.get_closest_anchor_point(source_center)
+	
+	print("_update_connection_points: Anchor points - source: %s, target: %s" % [source_point, target_point])
 	
 	# Calculate curve control points for string-like appearance
 	_calculate_curve_points()
@@ -135,6 +141,7 @@ func _update_connection_points():
 	
 	# Force redraw
 	queue_redraw()
+	print("_update_connection_points: Redraw queued")
 
 func update_on_note_movement():
 	"""Update connection when source or target notes are moved"""
@@ -162,6 +169,8 @@ func update_on_note_movement():
 
 func _calculate_curve_points():
 	"""Calculate control points for curved connection with dynamic nodes"""
+	print("_calculate_curve_points: Starting calculation with source_point=%s, target_point=%s" % [source_point, target_point])
+	
 	control_points.clear()
 	curve_segments.clear()
 	
@@ -176,8 +185,12 @@ func _calculate_curve_points():
 	# Always end with target point
 	control_points.append(target_point)
 	
+	print("_calculate_curve_points: Control points: %s" % control_points)
+	
 	# Generate smooth curve segments for drawing and hit detection
 	_generate_curve_segments()
+	
+	print("_calculate_curve_points: Generated %d curve segments" % curve_segments.size())
 	
 	# Apply anti-looping and malformation protection
 	_apply_curve_protection()
@@ -505,7 +518,10 @@ func _update_collision_area():
 
 func _draw():
 	"""Draw the connection string with curve and hover effects"""
+	print("_draw called: curve_segments size = %d, position = %s, size = %s" % [curve_segments.size(), position, size])
+	
 	if curve_segments.size() < 2:
+		print("_draw: Not enough curve segments to draw")
 		return
 	
 	# Determine line properties based on hover state
@@ -513,6 +529,8 @@ func _draw():
 	var current_color = connection_color
 	if is_hovered:
 		current_color = connection_color.lightened(0.3)  # Glow effect
+	
+	print("_draw: Drawing %d line segments with color %s, width %f" % [curve_segments.size() - 1, current_color, current_width])
 	
 	# Draw curved line using generated segments
 	for i in range(curve_segments.size() - 1):
@@ -527,6 +545,7 @@ func _draw():
 		var end_point = curve_segments[-1] - position
 		draw_circle(start_point, circle_radius, current_color)
 		draw_circle(end_point, circle_radius, current_color)
+		print("_draw: Drew connection circles at %s and %s with radius %f" % [start_point, end_point, circle_radius])
 
 func _bezier_curve(points: Array[Vector2], t: float) -> Vector2:
 	"""Calculate point on quadratic bezier curve"""
