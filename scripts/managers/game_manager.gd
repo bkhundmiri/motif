@@ -28,6 +28,11 @@ signal ui_closed()
 # Internal time tracking
 var real_time_elapsed: float = 0.0
 
+# Auto-save system
+var auto_save_timer: Timer
+var auto_save_interval: float = 300.0  # 5 minutes
+var game_save_path: String = "user://game_state.json"
+
 func _ready():
 	# Initialize game time
 	current_hour = start_hour
@@ -35,6 +40,12 @@ func _ready():
 	
 	# Set this as an autoload singleton
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Set up auto-save timer
+	_setup_auto_save_timer()
+	
+	# Load saved game state
+	_load_game_state()
 	
 	print("Game Manager initialized - Starting time: Day %d, %02d:%02d" % [current_day, current_hour, current_minute])
 	emit_signal("time_changed", current_day, current_hour, current_minute)
@@ -70,6 +81,20 @@ func advance_time(minutes: int):
 	
 	# Emit time change signal
 	emit_signal("time_changed", current_day, current_hour, current_minute)
+
+func _setup_auto_save_timer():
+	"""Set up the 5-minute auto-save timer for game state"""
+	auto_save_timer = Timer.new()
+	auto_save_timer.wait_time = auto_save_interval
+	auto_save_timer.timeout.connect(_on_auto_save_timer_timeout)
+	auto_save_timer.autostart = true
+	add_child(auto_save_timer)
+	print("GameManager auto-save timer set to %d minutes" % (auto_save_interval / 60))
+
+func _on_auto_save_timer_timeout():
+	"""Auto-save game state every 5 minutes"""
+	_save_game_state()
+	print("GameManager auto-save: %s" % get_full_time_string())
 
 func get_time_string() -> String:
 	"""Get formatted time string"""
@@ -214,6 +239,55 @@ func set_time(day: int, hour: int, minute: int):
 	current_minute = minute
 	emit_signal("time_changed", current_day, current_hour, current_minute)
 
+func _save_game_state():
+	"""Save game state to disk"""
+	var game_data = {
+		"game_time": {
+			"current_day": current_day,
+			"current_hour": current_hour,
+			"current_minute": current_minute
+		},
+		"version": 1,
+		"saved_at": Time.get_datetime_string_from_system()
+	}
+	
+	var file = FileAccess.open(game_save_path, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(game_data))
+		file.close()
+	else:
+		print("Error: Could not save game state")
+
+func _load_game_state():
+	"""Load game state from disk"""
+	if not FileAccess.file_exists(game_save_path):
+		print("No game state save file found, using defaults")
+		return
+	
+	var file = FileAccess.open(game_save_path, FileAccess.READ)
+	if not file:
+		print("Error: Could not open game state file")
+		return
+	
+	var file_content = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var parse_result = json.parse(file_content)
+	
+	if parse_result != OK:
+		print("Error: Could not parse game state file")
+		return
+	
+	var game_data = json.data
+	
+	if game_data.has("game_time"):
+		var time_data = game_data["game_time"]
+		current_day = time_data.get("current_day", 1)
+		current_hour = time_data.get("current_hour", 9)
+		current_minute = time_data.get("current_minute", 0)
+		print("Game state loaded from save file")
+
 # Debug functions
 func skip_to_time(hour: int, minute: int = 0):
 	"""Skip to a specific time today (for testing)"""
@@ -225,3 +299,36 @@ func skip_to_time(hour: int, minute: int = 0):
 	else:
 		# Next day
 		advance_time((24 * 60) - current_minutes + target_minutes)
+
+func delete_save_and_restart():
+	"""Delete the save file and restart the game"""
+	print("Deleting save file and restarting game...")
+	
+	# Delete the main game save file
+	if FileAccess.file_exists(game_save_path):
+		var dir_access = DirAccess.open("user://")
+		if dir_access:
+			var result = dir_access.remove(game_save_path.get_file())
+			if result == OK:
+				print("Successfully deleted game save file: %s" % game_save_path)
+			else:
+				print("Failed to delete game save file: %s (Error: %d)" % [game_save_path, result])
+		else:
+			print("Could not access user:// directory")
+	
+	# Delete case board save files (they use different paths)
+	var case_board_save_path = "user://case_board_data.json"
+	if FileAccess.file_exists(case_board_save_path):
+		var dir_access = DirAccess.open("user://")
+		if dir_access:
+			var result = dir_access.remove("case_board_data.json")
+			if result == OK:
+				print("Successfully deleted case board save file: %s" % case_board_save_path)
+			else:
+				print("Failed to delete case board save file: %s (Error: %d)" % [case_board_save_path, result])
+		else:
+			print("Could not access user:// directory")
+	
+	# Quit the game - player will need to restart manually
+	print("Game will now exit. Restart to begin fresh.")
+	get_tree().quit()

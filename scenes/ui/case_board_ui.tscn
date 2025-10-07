@@ -60,15 +60,11 @@ size_flags_vertical = 0
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="CaseTabsControl" type="TabContainer" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer"]
+[node name="CaseTabsControl" type="HBoxContainer" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 custom_minimum_size = Vector2(0, 40)
-tabs_rearrange_group = 1
-
-[node name="Case 1" type="Control" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer/CaseTabsControl"]
-layout_mode = 2
 
 [node name="NewCaseButton" type="Button" parent="CaseBoardPanel/MainVBox/ToolbarContainer/CaseTabsContainer"]
 layout_mode = 2
@@ -102,18 +98,10 @@ text = "❌ Close"
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="BoardScrollContainer" type="ScrollContainer" parent="CaseBoardPanel/MainVBox/BoardContainer"]
+[node name="BoardViewport" type="Control" parent="CaseBoardPanel/MainVBox/BoardContainer"]
 layout_mode = 2
-horizontal_scroll_mode = 3
-vertical_scroll_mode = 3
+clip_contents = true
 
-[node name="BoardContent" type="Control" parent="CaseBoardPanel/MainVBox/BoardContainer/BoardScrollContainer"]
+[node name="BoardContent" type="Control" parent="CaseBoardPanel/MainVBox/BoardContainer/BoardViewport"]
 layout_mode = 2
-custom_minimum_size = Vector2(2000, 1500)
-
-[node name="Background" type="ColorRect" parent="CaseBoardPanel/MainVBox/BoardContainer/BoardScrollContainer/BoardContent"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.95, 0.95, 0.95, 1)
+custom_minimum_size = Vector2(2400, 1900)
