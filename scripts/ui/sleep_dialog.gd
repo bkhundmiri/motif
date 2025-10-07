@@ -57,6 +57,8 @@ func _unhandled_input(event):
 	"""Handle escape key to close dialog"""
 	if event.is_action_pressed("ui_cancel"):
 		_close_dialog()
+		# Prevent ESC from propagating to the game state menu
+		get_viewport().set_input_as_handled()
 
 func _update_display():
 	"""Update the time displays"""

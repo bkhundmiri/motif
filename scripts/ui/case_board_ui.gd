@@ -23,6 +23,13 @@ signal case_board_closed()
 
 # Transform properties
 var zoom_level: float = 1.0
+
+# Keyboard panning state
+var keyboard_pan_keys_pressed: Dictionary = {
+	"w": false, "a": false, "s": false, "d": false,
+	"up": false, "left": false, "down": false, "right": false
+}
+var keyboard_pan_timer: Timer
 var min_zoom: float = 0.3
 var max_zoom: float = 2.0
 var zoom_step: float = 0.05
@@ -31,6 +38,15 @@ var board_offset: Vector2 = Vector2.ZERO
 # Interaction state
 var is_panning: bool = false
 var last_mouse_position: Vector2
+
+# Connection system
+var connections: Array[ConnectionString] = []
+var is_creating_connection: bool = false
+var connection_source: StickyNote = null
+var active_connection_line: Line2D = null
+
+# Input blocking for text editing
+var is_text_editing: bool = false
 
 # Board properties
 var board_size: Vector2 = Vector2(4000, 3000)  # Fixed large canvas for all resolutions
@@ -63,6 +79,7 @@ static var has_session_data: bool = false
 class CaseData:
 	var name: String
 	var notes: Array = []
+	var connections: Array = []  # Connection string data
 	var board_data: Dictionary = {}
 	
 	func _init(case_name: String):
@@ -70,7 +87,6 @@ class CaseData:
 
 func _ready():
 	"""Initialize the case board UI"""
-	print("Initializing Case Board UI...")
 	
 	# Clear legacy save data (uncomment for testing new save system)
 	# _clear_legacy_save_data()
@@ -80,8 +96,6 @@ func _ready():
 	_setup_auto_save_timer()
 	_load_case_board_data()
 	_setup_board()
-	
-	print("Case Board UI initialized successfully")
 
 func _setup_ui():
 	"""Set up the main UI layout"""
@@ -179,6 +193,10 @@ func _calculate_zoom_limits():
 		# Re-center after zoom adjustment
 		_center_board()
 
+func is_connecting() -> bool:
+	"""Check if currently in connection creation mode"""
+	return is_creating_connection
+
 func _connect_signals():
 	"""Connect UI signals"""
 	close_button.connect("pressed", _on_close_button_pressed)
@@ -197,14 +215,22 @@ func _setup_auto_save_timer():
 	auto_save_timer.timeout.connect(_on_auto_save_timer_timeout)
 	auto_save_timer.autostart = true
 	add_child(auto_save_timer)
-	print("Auto-save timer set to %d minutes" % (auto_save_interval / 60))
 
-func _unhandled_input(event):
+func _input(event):
 	"""Handle zoom, pan, and tab input"""
 	# Handle escape key
 	if event.is_action_pressed("ui_cancel"):
-		_close_case_board()
+		if is_creating_connection:
+			_cancel_connection_creation()
+		else:
+			_close_case_board()
+		# Prevent ESC from propagating to the game state menu
+		get_viewport().set_input_as_handled()
 		return
+	
+	# Handle keyboard panning (alternative to mouse panning) - but not during text editing
+	if event is InputEventKey and not is_text_editing:
+		_handle_keyboard_panning(event)
 	
 	# Handle tab input for renaming
 	if _handle_tab_input(event):
@@ -213,10 +239,18 @@ func _unhandled_input(event):
 	# Handle tab tooltips on mouse motion
 	if event is InputEventMouseMotion:
 		_handle_tab_tooltips(event)
+		# Update connection preview line if in connection mode
+		if is_creating_connection:
+			_update_preview_line()
 	
-	# Only handle board input if mouse is over viewport
+	# Handle zoom and panning
 	if not _is_mouse_over_viewport():
 		return
+	
+	# Handle click to defocus text editing (only on the board area)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if is_text_editing:
+			_defocus_all_text_editing()
 	
 	# Handle zoom
 	if event is InputEventMouseButton:
@@ -224,33 +258,89 @@ func _unhandled_input(event):
 			_zoom_at_cursor(zoom_step, event.position)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_zoom_at_cursor(-zoom_step, event.position)
-		elif event.button_index == MOUSE_BUTTON_MIDDLE:
-			if event.pressed:
-				is_panning = true
-				last_mouse_position = event.position
-			else:
-				is_panning = false
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			_create_sticky_note_at_cursor(event.position)
-	
-	# Handle panning
-	if event is InputEventMouseMotion and is_panning:
-		var delta = event.position - last_mouse_position
-		
-		# Scale pan speed based on zoom level for more responsive feel
-		var pan_speed = 1.0 / zoom_level
-		board_offset += delta * pan_speed
-		
-		# Enforce canvas bounds
-		_enforce_canvas_bounds()
-		_update_board_transform()
-		last_mouse_position = event.position
+		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and is_creating_connection:
+			# If creating connection, we need to handle this more carefully
+			# Let the note handle target selection first, then cancel if no target was selected
+			await get_tree().process_frame  # Wait one frame for note input to process
+			if is_creating_connection:  # If still creating connection after frame, cancel it
+				print("Cancelling connection - clicked on empty space")
+				_cancel_connection_creation()
 
 func _is_mouse_over_viewport() -> bool:
 	"""Check if mouse is over the board viewport"""
 	var mouse_pos = get_global_mouse_position()
 	var viewport_rect = board_viewport.get_global_rect()
 	return viewport_rect.has_point(mouse_pos)
+
+func _handle_keyboard_panning(event: InputEventKey):
+	"""Handle WASD/Arrow key panning with diagonal support"""
+	var key_name = ""
+	var is_pressed = event.pressed
+	
+	# Determine which key was pressed/released
+	match event.keycode:
+		KEY_W, KEY_UP:
+			key_name = "w" if event.keycode == KEY_W else "up"
+		KEY_A, KEY_LEFT:
+			key_name = "a" if event.keycode == KEY_A else "left"
+		KEY_S, KEY_DOWN:
+			key_name = "s" if event.keycode == KEY_S else "down"
+		KEY_D, KEY_RIGHT:
+			key_name = "d" if event.keycode == KEY_D else "right"
+		_:
+			return  # Not a movement key
+	
+	# Update key state
+	keyboard_pan_keys_pressed[key_name] = is_pressed
+	
+	# Start/stop continuous panning
+	_update_keyboard_panning()
+
+func _update_keyboard_panning():
+	"""Update continuous keyboard panning based on currently pressed keys"""
+	var pan_delta = Vector2.ZERO
+	var pan_speed = 120.0  # Increased speed for smoother movement
+	
+	# Check for vertical movement
+	if keyboard_pan_keys_pressed["w"] or keyboard_pan_keys_pressed["up"]:
+		pan_delta.y += pan_speed
+	if keyboard_pan_keys_pressed["s"] or keyboard_pan_keys_pressed["down"]:
+		pan_delta.y -= pan_speed
+	
+	# Check for horizontal movement
+	if keyboard_pan_keys_pressed["a"] or keyboard_pan_keys_pressed["left"]:
+		pan_delta.x += pan_speed
+	if keyboard_pan_keys_pressed["d"] or keyboard_pan_keys_pressed["right"]:
+		pan_delta.x -= pan_speed
+	
+	# Apply movement if any keys are pressed
+	if pan_delta != Vector2.ZERO:
+		# Normalize diagonal movement to prevent faster diagonal panning
+		if abs(pan_delta.x) > 0 and abs(pan_delta.y) > 0:
+			pan_delta = pan_delta.normalized() * pan_speed
+		
+		board_offset += pan_delta * get_process_delta_time() * 60.0  # Frame-rate independent
+		_enforce_canvas_bounds()
+		_update_board_transform()
+		
+		# Start continuous panning timer if not already running
+		if not keyboard_pan_timer or keyboard_pan_timer.is_stopped():
+			_start_keyboard_pan_timer()
+	else:
+		# Stop panning timer when no keys are pressed
+		if keyboard_pan_timer and not keyboard_pan_timer.is_stopped():
+			keyboard_pan_timer.stop()
+
+func _start_keyboard_pan_timer():
+	"""Start the keyboard panning timer for continuous movement"""
+	if not keyboard_pan_timer:
+		keyboard_pan_timer = Timer.new()
+		keyboard_pan_timer.wait_time = 0.016  # ~60 FPS
+		keyboard_pan_timer.timeout.connect(_update_keyboard_panning)
+		add_child(keyboard_pan_timer)
+	keyboard_pan_timer.start()
+
+
 
 func _handle_tab_input(_event) -> bool:
 	"""Handle input for tab renaming. Returns true if event was handled."""
@@ -401,6 +491,10 @@ func add_sticky_note(board_position: Vector2, note_text: String = "New Note"):
 	sticky_note.connect("note_moved", _on_sticky_note_moved)
 	sticky_note.connect("note_deleted", _on_sticky_note_deleted)
 	sticky_note.connect("note_edited", _on_sticky_note_edited)
+	sticky_note.connect("connection_requested", _on_connection_requested)
+	sticky_note.connect("connection_target_selected", _on_connection_target_selected)
+	sticky_note.connect("text_edit_started", _on_text_edit_started)
+	sticky_note.connect("text_edit_finished", _on_text_edit_finished)
 	
 	# Add to board
 	board_control.add_child(sticky_note)
@@ -545,6 +639,11 @@ func _close_case_board():
 	print("Closing case board...")
 	_save_current_case_state()
 	
+	# Reset cursor if we're currently panning
+	if is_panning:
+		is_panning = false
+		Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+	
 	# Save current state to session for within-instance persistence
 	_save_session_state()
 	
@@ -625,6 +724,13 @@ func _show_rename_dialog(tab_index: int):
 	)
 
 func _on_sticky_note_moved(_note: StickyNote, _new_position: Vector2):
+	# Update all connections involving this note
+	for child in board_control.get_children():
+		if child is ConnectionString:
+			var connection = child as ConnectionString
+			if connection.source_note == _note or connection.target_note == _note:
+				connection.update_on_note_movement()
+	
 	needs_save = true  # Mark for next auto-save
 
 func _on_sticky_note_deleted(note: StickyNote):
@@ -645,7 +751,9 @@ func _create_new_case():
 	case_boards.append(new_case)
 	current_case_index = case_boards.size() - 1
 	
+	# Clear both notes and connections for the new case
 	_clear_all_notes()
+	_clear_all_connections()
 	_update_case_tabs()
 	needs_save = true  # Mark for save
 	
@@ -662,58 +770,130 @@ func _switch_to_case(case_index: int):
 func _save_current_case_state():
 	if current_case_index >= 0 and current_case_index < case_boards.size():
 		var case_data = case_boards[current_case_index]
-		print("Saving to case %d ('%s'): %d notes found" % [current_case_index, case_data.name, sticky_notes.size()])
+		print("Saving to case %d ('%s'): %d notes, %d connections found" % [current_case_index, case_data.name, sticky_notes.size(), _count_connections()])
 		case_data.notes.clear()
+		case_data.connections.clear()
 		
+		# Save notes
 		for note in sticky_notes:
 			if note and is_instance_valid(note):
 				var note_data = note.get_save_data()
 				case_data.notes.append(note_data)
-				print("Saved note: '%s' at %s" % [note_data.text, note_data.position])
+				print("Saved note: '%s' (ID: %s) at %s" % [note_data.text, note_data.id, note_data.position])
+		
+		# Save connections
+		for child in board_control.get_children():
+			if child is ConnectionString:
+				var connection = child as ConnectionString
+				var connection_data = connection.get_save_data()
+				if connection_data:  # Only save valid connections
+					case_data.connections.append(connection_data)
+					print("Saved connection between notes %s and %s" % [connection_data.source_id, connection_data.target_id])
 	else:
 		print("ERROR: Cannot save case state - invalid case index %d" % current_case_index)
 
 func _load_case_state(case_data: CaseData):
 	is_loading = true  # Prevent auto-save during loading
 	_clear_all_notes()
+	_clear_all_connections()
 	
-	print("Loading case '%s': %d notes to restore" % [case_data.name, case_data.notes.size()])
+	print("Loading case '%s': %d notes, %d connections to restore" % [case_data.name, case_data.notes.size(), case_data.connections.size()])
+	
+	# First load all notes
+	var notes_by_id: Dictionary = {}
 	for note_data in case_data.notes:
-		# Handle position data - could be Vector2 or string representation
-		var note_pos = Vector2.ZERO
-		var pos_data = note_data.get("position", Vector2.ZERO)
-		
-		if pos_data is Vector2:
-			note_pos = pos_data
-		elif pos_data is Dictionary and pos_data.has("x") and pos_data.has("y"):
-			# JSON converts Vector2 to dictionary with x, y keys
-			note_pos = Vector2(pos_data["x"], pos_data["y"])
-		elif pos_data is String:
-			# Handle string representation like "(200, 150)"
-			var cleaned = pos_data.strip_edges().replace("(", "").replace(")", "")
-			var parts = cleaned.split(",")
-			if parts.size() >= 2:
-				note_pos = Vector2(float(parts[0].strip_edges()), float(parts[1].strip_edges()))
-		else:
-			print("Warning: Invalid position data type: %s" % typeof(pos_data))
-			note_pos = Vector2.ZERO
-		
-		var note_text = note_data.get("text", "")
-		print("Loading note: '%s' at %s" % [note_text, note_pos])
-		add_sticky_note(note_pos, note_text)
-		
+		# Create note at default position first
+		add_sticky_note(Vector2.ZERO, "")
+		# Get the note that was just created and load its data (including position)
 		if not sticky_notes.is_empty():
-			var last_note = sticky_notes[-1]
-			if note_data.has("color_index"):
-				last_note.set_note_color(note_data["color_index"])
-	print("Case '%s' loaded: %d notes restored" % [case_data.name, sticky_notes.size()])
+			var note = sticky_notes[-1]
+			note.load_from_data(note_data)
+			notes_by_id[note.note_id] = note  # Map for connection loading
+			print("Loaded note: '%s' with ID %s" % [note_data.get("text", ""), note.note_id])
+	
+	# Debug: Print the notes_by_id mapping
+	print("Note ID mapping for connections:")
+	for id in notes_by_id.keys():
+		print("  ID: %s -> Note with text: '%s'" % [id, notes_by_id[id].get_note_text()])
+	
+	# Then load all connections with deduplication
+	var loaded_connections: Array[String] = []  # Track loaded connection pairs
+	
+	for connection_data in case_data.connections:
+		print("Loading connection data: source=%s, target=%s" % [connection_data.source_id, connection_data.target_id])
+		
+		# Create a normalized connection key (smaller ID first to detect bidirectional duplicates)
+		var connection_key = ""
+		if connection_data.source_id < connection_data.target_id:
+			connection_key = connection_data.source_id + "->" + connection_data.target_id
+		else:
+			connection_key = connection_data.target_id + "->" + connection_data.source_id
+		
+		# Skip if we've already loaded this connection pair
+		if loaded_connections.has(connection_key):
+			print("Skipping duplicate connection: %s" % connection_key)
+			continue
+		
+		loaded_connections.append(connection_key)
+		
+		# Verify both notes exist
+		if not notes_by_id.has(connection_data.source_id):
+			print("ERROR: Source note ID %s not found in notes_by_id" % connection_data.source_id)
+			continue
+		if not notes_by_id.has(connection_data.target_id):
+			print("ERROR: Target note ID %s not found in notes_by_id" % connection_data.target_id)
+			continue
+			
+		var connection_string = preload("res://scripts/ui/connection_string.gd").new()
+		board_control.add_child(connection_string)
+		connection_string.load_from_data(connection_data, notes_by_id)
+		print("Loaded connection between %s and %s" % [connection_data.source_id, connection_data.target_id])
+	
+	print("Case '%s' loaded: %d notes, %d connections restored" % [case_data.name, sticky_notes.size(), _count_connections()])
 	is_loading = false  # Re-enable auto-save
+
+func _count_connections() -> int:
+	"""Count the number of connection strings in the current case"""
+	var count = 0
+	for child in board_control.get_children():
+		if child is ConnectionString:
+			count += 1
+	return count
+
+func _clear_all_connections():
+	"""Clear all connection strings from the board"""
+	for child in board_control.get_children():
+		if child is ConnectionString:
+			child.queue_free()
 
 func _clear_all_notes():
 	for note in sticky_notes:
 		if note and is_instance_valid(note):
 			note.queue_free()
 	sticky_notes.clear()
+
+func _copy_case_data_to(source_case: CaseData, target_case: CaseData):
+	"""Shared method to copy all case data including notes and connections"""
+	target_case.notes = source_case.notes.duplicate(true)
+	target_case.connections = source_case.connections.duplicate(true)
+	target_case.board_data = source_case.board_data.duplicate(true)
+
+func _create_case_save_dict(case_data: CaseData) -> Dictionary:
+	"""Shared method to create save dictionary including all case data"""
+	return {
+		"name": case_data.name,
+		"notes": case_data.notes.duplicate(),
+		"connections": case_data.connections.duplicate(),
+		"board_data": case_data.board_data.duplicate()
+	}
+
+func _load_case_from_dict(case_info: Dictionary) -> CaseData:
+	"""Shared method to load case data from dictionary including all data"""
+	var case_data = CaseData.new(case_info["name"])
+	case_data.notes = case_info.get("notes", []).duplicate()
+	case_data.connections = case_info.get("connections", []).duplicate()
+	case_data.board_data = case_info.get("board_data", {}).duplicate()
+	return case_data
 
 # Save/Load functionality
 func _save_session_state():
@@ -727,10 +907,9 @@ func _save_session_state():
 	for i in range(case_boards.size()):
 		var case_data = case_boards[i]
 		var session_case = CaseData.new(case_data.name)
-		session_case.notes = case_data.notes.duplicate(true)
-		session_case.board_data = case_data.board_data.duplicate(true)
+		_copy_case_data_to(case_data, session_case)
 		CaseBoardUI.session_case_boards.append(session_case)
-		print("Saved session case %d: '%s' with %d notes" % [i, case_data.name, case_data.notes.size()])
+		print("Saved session case %d: '%s' with %d notes, %d connections" % [i, case_data.name, case_data.notes.size(), case_data.connections.size()])
 	
 	CaseBoardUI.session_current_case_index = current_case_index
 	CaseBoardUI.has_session_data = true
@@ -743,8 +922,7 @@ func _load_from_session_state():
 	# Deep copy session data back to current state
 	for session_case in CaseBoardUI.session_case_boards:
 		var case_data = CaseData.new(session_case.name)
-		case_data.notes = session_case.notes.duplicate(true)
-		case_data.board_data = session_case.board_data.duplicate(true)
+		_copy_case_data_to(session_case, case_data)
 		case_boards.append(case_data)
 	
 	current_case_index = CaseBoardUI.session_current_case_index
@@ -776,8 +954,12 @@ func _case_has_content(case_data: CaseData) -> bool:
 	if case_data.notes.size() > 0:
 		return true
 	
+	# Save if case has any connections
+	if case_data.connections.size() > 0:
+		return true
+	
 	# Save if case has any board data
-	if not case_data.board_data.is_empty():
+	if case_data.board_data.size() > 0:
 		return true
 	
 	return false
@@ -816,13 +998,9 @@ func _save_case_board_data():
 	print("Saving %d meaningful cases to disk:" % meaningful_cases.size())
 	for i in range(meaningful_cases.size()):
 		var case_data = meaningful_cases[i]
-		var case_save_data = {
-			"name": case_data.name,
-			"notes": case_data.notes.duplicate(),
-			"board_data": case_data.board_data.duplicate()
-		}
+		var case_save_data = _create_case_save_dict(case_data)
 		save_data["cases"].append(case_save_data)
-		print("  Case %d: '%s' with %d notes" % [i, case_data.name, case_data.notes.size()])
+		print("  Case %d: '%s' with %d notes, %d connections" % [i, case_data.name, case_data.notes.size(), case_data.connections.size()])
 	
 	# Write to file
 	var file = FileAccess.open(save_file_path, FileAccess.WRITE)
@@ -881,11 +1059,9 @@ func _load_case_board_data():
 	case_boards.clear()
 	for i in range(save_data["cases"].size()):
 		var case_info = save_data["cases"][i]
-		var case_data = CaseData.new(case_info["name"])
-		case_data.notes = case_info["notes"].duplicate()
-		case_data.board_data = case_info.get("board_data", {}).duplicate()
+		var case_data = _load_case_from_dict(case_info)
 		case_boards.append(case_data)
-		print("Loaded case %d: '%s' with %d notes" % [i, case_data.name, case_data.notes.size()])
+		print("Loaded case %d: '%s' with %d notes, %d connections" % [i, case_data.name, case_data.notes.size(), case_data.connections.size()])
 	
 	# Set current case index
 	current_case_index = save_data["current_case_index"]
@@ -920,10 +1096,11 @@ func _auto_save_case_state():
 	"""Auto-save case state after changes"""
 	if is_loading or not needs_save:
 		return  # Don't auto-save during loading or if no changes
-	_save_current_case_state()
-	_save_all_game_data()
+	
+	_save_current_case_state()  # Save current case including connections
+	_save_case_board_data()  # Save to disk
 	needs_save = false
-	print("Auto-save completed")
+	print("Auto-save completed with connections")
 
 func _on_auto_save_timer_timeout():
 	"""Called every 5 minutes to auto-save"""
@@ -932,3 +1109,140 @@ func _on_auto_save_timer_timeout():
 		_auto_save_case_state()
 	else:
 		print("5-minute timer: no changes to save")
+
+# Connection System Methods
+func _on_connection_requested(source_note: StickyNote):
+	"""Handle connection creation request from a note"""
+	print("Connection requested from note: ", source_note.note_id)
+	if is_creating_connection:
+		print("Already creating connection - cancelling previous")
+		# Cancel existing connection
+		_cancel_connection_creation()
+	
+	is_creating_connection = true
+	connection_source = source_note
+	print("Connection mode enabled, source set to: ", source_note.note_id)
+	
+	# Create visual feedback line that follows mouse
+	_create_preview_line()
+
+func _on_connection_target_selected(target_note: StickyNote):
+	"""Handle connection target selection"""
+	print("Connection target selected: ", target_note.note_id)
+	if not is_creating_connection or not connection_source:
+		print("Not in connection mode or no source")
+		return
+	
+	if target_note == connection_source:
+		print("Cannot connect to self - cancelling")
+		# Can't connect to self
+		_cancel_connection_creation()
+		return
+	
+	print("Creating connection between: ", connection_source.note_id, " and ", target_note.note_id)
+	# Create the connection
+	_create_connection(connection_source, target_note)
+	_cancel_connection_creation()
+
+func _create_preview_line():
+	"""Create preview line that follows mouse cursor"""
+	active_connection_line = Line2D.new()
+	active_connection_line.width = 5.0  # Thicker line
+	active_connection_line.default_color = Color.RED
+	active_connection_line.z_index = 100
+	# Add some curve to the line
+	active_connection_line.joint_mode = Line2D.LINE_JOINT_ROUND
+	active_connection_line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	active_connection_line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	board_control.add_child(active_connection_line)
+
+func _update_preview_line():
+	"""Update preview line to follow mouse cursor with curvature"""
+	if not active_connection_line or not connection_source:
+		return
+	
+	var mouse_pos = board_control.get_local_mouse_position()
+	var source_center = connection_source.position + (connection_source.size / 2.0)
+	
+	# Calculate curve for preview line
+	var distance = source_center.distance_to(mouse_pos)
+	var curve_strength = min(distance * 0.3, 100.0)
+	
+	# Calculate perpendicular direction for curve
+	var direction = (mouse_pos - source_center).normalized()
+	var perpendicular = Vector2(-direction.y, direction.x)
+	
+	# Add curve control point in the middle, offset perpendicular
+	var mid_point = (source_center + mouse_pos) / 2.0
+	var control_point = mid_point + perpendicular * curve_strength * 0.5
+	
+	# Create curved line with multiple points
+	active_connection_line.clear_points()
+	var segments = 15
+	for i in range(segments + 1):
+		var t = float(i) / float(segments)
+		var curve_point = _bezier_quadratic(source_center, control_point, mouse_pos, t)
+		active_connection_line.add_point(curve_point)
+
+func _bezier_quadratic(p0: Vector2, p1: Vector2, p2: Vector2, t: float) -> Vector2:
+	"""Calculate point on quadratic bezier curve"""
+	var u = 1.0 - t
+	return u * u * p0 + 2 * u * t * p1 + t * t * p2
+
+func _create_connection(source: StickyNote, target: StickyNote):
+	"""Create a visual connection between two notes"""
+	print("Creating connection between notes: ", source.note_id, " -> ", target.note_id)
+	
+	# Check if connection already exists in either direction
+	for existing_connection in connections:
+		if (existing_connection.source_note == source and existing_connection.target_note == target) or \
+		   (existing_connection.source_note == target and existing_connection.target_note == source):
+			print("Connection already exists between these notes, skipping duplicate")
+			return
+	
+	var connection = ConnectionString.new()
+	connection.setup_connection(source, target)
+	# Connect to deletion signal to clean up from connections array
+	connection.connect("tree_exiting", _on_connection_deleted.bind(connection))
+	board_control.add_child(connection)
+	connections.append(connection)
+	print("Connection added. Total connections: ", connections.size())
+	
+	# Add connection to both notes (for tracking purposes)
+	source.add_connection(target)
+	target.add_connection(source)
+	
+	# Mark that we need to save the updated state
+	needs_save = true
+
+func _cancel_connection_creation():
+	"""Cancel connection creation mode"""
+	print("Cancelling connection creation")
+	is_creating_connection = false
+	connection_source = null
+	
+	if active_connection_line:
+		active_connection_line.queue_free()
+		active_connection_line = null
+
+# Text editing state management
+func _on_text_edit_started():
+	"""Handle when a note starts text editing"""
+	is_text_editing = true
+
+func _on_text_edit_finished():
+	"""Handle when a note finishes text editing"""
+	is_text_editing = false
+
+func _defocus_all_text_editing():
+	"""Remove focus from all text editing fields"""
+	for note in sticky_notes:
+		if note and is_instance_valid(note) and note.text_edit and note.text_edit.has_focus():
+			note.text_edit.release_focus()
+
+func _on_connection_deleted(connection: ConnectionString):
+	"""Handle when a connection is deleted"""
+	if connection in connections:
+		connections.erase(connection)
+		needs_save = true  # Mark that we need to save the updated state
+		print("Connection deleted. Total connections: ", connections.size())

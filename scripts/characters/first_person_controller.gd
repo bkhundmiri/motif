@@ -22,6 +22,9 @@ var camera_rotation_x: float = 0.0
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera3D
 
+# UI references
+var esc_menu: EscMenu
+
 # Manager references
 var game_manager
 
@@ -35,12 +38,23 @@ func _ready():
 	# Get game manager reference
 	game_manager = get_node("/root/GameManagerUI")
 	
+	# Create and setup ESC menu
+	_setup_esc_menu()
+	
 	# Capture mouse cursor for first-person experience
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	
 	# Set initial camera position
 	if camera_pivot:
 		camera_pivot.position = Vector3.ZERO
+
+func _setup_esc_menu():
+	"""Create and setup the ESC menu overlay"""
+	esc_menu = preload("res://scripts/ui/esc_menu.gd").new()
+	
+	# Add to the scene tree at a high level (so it appears over everything)
+	get_tree().current_scene.add_child.call_deferred(esc_menu)
+	esc_menu.z_index = 1000  # Ensure it's on top
 
 func _input(event):
 	# Block input when UI is open (except escape key)
@@ -52,7 +66,7 @@ func _input(event):
 			else:
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		return
-	
+
 	# Handle mouse movement for camera rotation
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		# Rotate player body horizontally (Y-axis)
@@ -64,13 +78,28 @@ func _input(event):
 		
 		if camera_pivot:
 			camera_pivot.rotation.x = camera_rotation_x
-	
-	# Handle escape key to release mouse
+
+func _unhandled_input(event):
+	"""Handle ESC key only when no other UI has handled it, and other unhandled input"""
+	# Handle ESC key for game menu (only when no UI is open and no other UI handled it)
 	if event.is_action_pressed("ui_cancel"):
-		if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		else:
-			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		if not (game_manager and game_manager.ui_open):
+			if esc_menu and is_instance_valid(esc_menu):
+				esc_menu.open_menu()
+				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)  # Show cursor for menu
+				get_viewport().set_input_as_handled()  # Mark as handled
+		return
+	
+	# Block interaction input when UI is open
+	if game_manager and game_manager.ui_open:
+		return
+	
+	# Additional input handling for detective-specific actions
+	if event.is_action_pressed("interact"):
+		interact_with_object()
+	
+	if event.is_action_pressed("inventory"):
+		toggle_inventory()
 
 func _physics_process(delta):
 	# Block movement when UI is open
@@ -112,18 +141,6 @@ func _physics_process(delta):
 	
 	# Move the character
 	move_and_slide()
-
-func _unhandled_input(event):
-	# Block interaction input when UI is open
-	if game_manager and game_manager.ui_open:
-		return
-	
-	# Additional input handling for detective-specific actions
-	if event.is_action_pressed("interact"):
-		interact_with_object()
-	
-	if event.is_action_pressed("inventory"):
-		toggle_inventory()
 
 func interact_with_object():
 	# Placeholder for interaction system

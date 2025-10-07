@@ -299,3 +299,36 @@ func skip_to_time(hour: int, minute: int = 0):
 	else:
 		# Next day
 		advance_time((24 * 60) - current_minutes + target_minutes)
+
+func delete_save_and_restart():
+	"""Delete the save file and restart the game"""
+	print("Deleting save file and restarting game...")
+	
+	# Delete the main game save file
+	if FileAccess.file_exists(game_save_path):
+		var dir_access = DirAccess.open("user://")
+		if dir_access:
+			var result = dir_access.remove(game_save_path.get_file())
+			if result == OK:
+				print("Successfully deleted game save file: %s" % game_save_path)
+			else:
+				print("Failed to delete game save file: %s (Error: %d)" % [game_save_path, result])
+		else:
+			print("Could not access user:// directory")
+	
+	# Delete case board save files (they use different paths)
+	var case_board_save_path = "user://case_board_data.json"
+	if FileAccess.file_exists(case_board_save_path):
+		var dir_access = DirAccess.open("user://")
+		if dir_access:
+			var result = dir_access.remove("case_board_data.json")
+			if result == OK:
+				print("Successfully deleted case board save file: %s" % case_board_save_path)
+			else:
+				print("Failed to delete case board save file: %s (Error: %d)" % [case_board_save_path, result])
+		else:
+			print("Could not access user:// directory")
+	
+	# Quit the game - player will need to restart manually
+	print("Game will now exit. Restart to begin fresh.")
+	get_tree().quit()
