@@ -1,20 +1,131 @@
-[gd_scene load_steps=4 format=3 uid="uid://cy4x7m8n1qaq2"]
+[gd_scene load_steps=15 format=3 uid="uid://cy4x7m8n1qaq2"]
 
 [ext_resource type="Script" uid="uid://ddvsutg8ooyei" path="res://scripts/items/bed.gd" id="1_5k8j3"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
-size = Vector3(2, 0.5, 1)
+[sub_resource type="BoxShape3D" id="BoxShape3D_main"]
+size = Vector3(2.1, 0.8, 1.1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_1"]
-size = Vector3(2, 0.5, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(0.4, 0.25, 0.15, 1)
+roughness = 0.7
+metallic = 0.1
+normal_scale = 1.0
 
-[node name="Bed" type="StaticBody3D" groups=["interactable"]]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mattress"]
+albedo_color = Color(0.95, 0.95, 0.92, 1)
+roughness = 0.8
+metallic = 0.0
+normal_scale = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sheets"]
+albedo_color = Color(0.85, 0.88, 0.95, 1)
+roughness = 0.4
+metallic = 0.0
+normal_scale = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pillow"]
+albedo_color = Color(0.98, 0.97, 0.95, 1)
+roughness = 0.3
+metallic = 0.0
+normal_scale = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame_base"]
+size = Vector3(2.1, 0.15, 1.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame_head"]
+size = Vector3(2.1, 0.8, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame_foot"]
+size = Vector3(2.1, 0.4, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mattress"]
+size = Vector3(1.9, 0.25, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sheets"]
+size = Vector3(1.95, 0.05, 0.95)
+
+[sub_resource type="BoxMesh" id="BoxMesh_blanket"]
+size = Vector3(1.85, 0.08, 0.7)
+
+[sub_resource type="SphereMesh" id="SphereMesh_pillow"]
+radius = 0.15
+height = 0.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_legs"]
+size = Vector3(0.08, 0.3, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_legs"]
+albedo_color = Color(0.35, 0.2, 0.1, 1)
+roughness = 0.6
+metallic = 0.1
+
+[node name="Bed" type="StaticBody3D" groups=["interactable", "furniture"]]
 script = ExtResource("1_5k8j3")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-shape = SubResource("BoxShape3D_1")
+[node name="MainCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_main")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-mesh = SubResource("BoxMesh_1")
+[node name="BedFrame" type="Node3D" parent="."]
+
+[node name="FrameBase" type="MeshInstance3D" parent="BedFrame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.075, 0)
+mesh = SubResource("BoxMesh_frame_base")
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")
+
+[node name="FrameHeadboard" type="MeshInstance3D" parent="BedFrame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -0.5)
+mesh = SubResource("BoxMesh_frame_head")
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")
+
+[node name="FrameFootboard" type="MeshInstance3D" parent="BedFrame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0.5)
+mesh = SubResource("BoxMesh_frame_foot")
+surface_material_override/0 = SubResource("StandardMaterial3D_frame")
+
+[node name="Leg1" type="MeshInstance3D" parent="BedFrame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, -0.15, -0.5)
+mesh = SubResource("BoxMesh_legs")
+surface_material_override/0 = SubResource("StandardMaterial3D_legs")
+
+[node name="Leg2" type="MeshInstance3D" parent="BedFrame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, -0.15, -0.5)
+mesh = SubResource("BoxMesh_legs")
+surface_material_override/0 = SubResource("StandardMaterial3D_legs")
+
+[node name="Leg3" type="MeshInstance3D" parent="BedFrame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95, -0.15, 0.5)
+mesh = SubResource("BoxMesh_legs")
+surface_material_override/0 = SubResource("StandardMaterial3D_legs")
+
+[node name="Leg4" type="MeshInstance3D" parent="BedFrame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, -0.15, 0.5)
+mesh = SubResource("BoxMesh_legs")
+surface_material_override/0 = SubResource("StandardMaterial3D_legs")
+
+[node name="Mattress" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+mesh = SubResource("BoxMesh_mattress")
+surface_material_override/0 = SubResource("StandardMaterial3D_mattress")
+
+[node name="Sheets" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.425, 0)
+mesh = SubResource("BoxMesh_sheets")
+surface_material_override/0 = SubResource("StandardMaterial3D_sheets")
+
+[node name="Blanket" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.46, 0.1)
+mesh = SubResource("BoxMesh_blanket")
+surface_material_override/0 = SubResource("StandardMaterial3D_sheets")
+
+[node name="Pillows" type="Node3D" parent="."]
+
+[node name="Pillow1" type="MeshInstance3D" parent="Pillows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.45, -0.3)
+mesh = SubResource("SphereMesh_pillow")
+surface_material_override/0 = SubResource("StandardMaterial3D_pillow")
+
+[node name="Pillow2" type="MeshInstance3D" parent="Pillows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.45, -0.3)
+mesh = SubResource("SphereMesh_pillow")
+surface_material_override/0 = SubResource("StandardMaterial3D_pillow")

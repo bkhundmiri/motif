@@ -7,6 +7,7 @@ extends Node3D
 @onready var apartment_test_button: Button = $UI/Panel/VBoxContainer/ApartmentTestButton
 @onready var building_test_button: Button = $UI/Panel/VBoxContainer/BuildingTestButton
 @onready var layouts_test_button: Button = $UI/Panel/VBoxContainer/LayoutsTestButton
+@onready var studio_apartment_button: Button = $UI/Panel/VBoxContainer/StudioApartmentButton
 @onready var city_test_button: Button = $UI/Panel/VBoxContainer/CityTestButton
 
 func _ready():
@@ -16,6 +17,7 @@ func _ready():
 	apartment_test_button.pressed.connect(_load_apartment_test)
 	building_test_button.pressed.connect(_load_building_test)
 	layouts_test_button.pressed.connect(_load_layouts_test)
+	studio_apartment_button.pressed.connect(_load_studio_apartment_test)
 	city_test_button.pressed.connect(_load_city_test)
 
 func _load_apartment_test():
@@ -29,6 +31,10 @@ func _load_building_test():
 func _load_layouts_test():
 	print("Loading apartment layouts test scene...")
 	get_tree().change_scene_to_file("res://scenes/test_scenes/apartment_layouts_test.tscn")
+
+func _load_studio_apartment_test():
+	print("Loading studio apartment (furnished) test scene...")
+	get_tree().change_scene_to_file("res://scenes/test_scenes/studio_apartment_scene.tscn")
 
 func _load_city_test():
 	print("Loading city generation test scene...")

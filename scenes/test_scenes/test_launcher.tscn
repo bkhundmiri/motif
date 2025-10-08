@@ -53,6 +53,10 @@ text = "Building Generation Test"
 layout_mode = 2
 text = "Apartment Layouts Test"
 
+[node name="StudioApartmentButton" type="Button" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Studio Apartment (Furnished)"
+
 [node name="CityTestButton" type="Button" parent="UI/Panel/VBoxContainer"]
 layout_mode = 2
 text = "City Generation Test"

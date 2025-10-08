@@ -1,0 +1,71 @@
+[gd_scene load_steps=8 format=3 uid="uid://b5kp8m4n7qya0"]
+
+[ext_resource type="Script" path="res://scripts/items/stove.gd" id="1_stove"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_main"]
+size = Vector3(0.6, 0.9, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.2, 0.2, 0.2, 1)
+roughness = 0.3
+metallic = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_top"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+roughness = 0.1
+metallic = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_burner"]
+albedo_color = Color(0.05, 0.05, 0.05, 1)
+roughness = 0.2
+metallic = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+size = Vector3(0.6, 0.85, 0.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_top"]
+size = Vector3(0.6, 0.05, 0.6)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_burner"]
+top_radius = 0.08
+bottom_radius = 0.08
+height = 0.02
+
+[node name="Stove" type="StaticBody3D" groups=["furniture", "kitchen", "appliance"]]
+script = ExtResource("1_stove")
+
+[node name="MainCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_main")
+
+[node name="StoveBody" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.425, 0)
+mesh = SubResource("BoxMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="StoveTop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+mesh = SubResource("BoxMesh_top")
+surface_material_override/0 = SubResource("StandardMaterial3D_top")
+
+[node name="Burners" type="Node3D" parent="."]
+
+[node name="Burner1" type="MeshInstance3D" parent="Burners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0.91, -0.15)
+mesh = SubResource("CylinderMesh_burner")
+surface_material_override/0 = SubResource("StandardMaterial3D_burner")
+
+[node name="Burner2" type="MeshInstance3D" parent="Burners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 0.91, -0.15)
+mesh = SubResource("CylinderMesh_burner")
+surface_material_override/0 = SubResource("StandardMaterial3D_burner")
+
+[node name="Burner3" type="MeshInstance3D" parent="Burners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0.91, 0.15)
+mesh = SubResource("CylinderMesh_burner")
+surface_material_override/0 = SubResource("StandardMaterial3D_burner")
+
+[node name="Burner4" type="MeshInstance3D" parent="Burners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 0.91, 0.15)
+mesh = SubResource("CylinderMesh_burner")
+surface_material_override/0 = SubResource("StandardMaterial3D_burner")
