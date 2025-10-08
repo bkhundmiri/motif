@@ -1048,7 +1048,7 @@ func _on_view_mode_pressed():
 
 # ===== UNIVERSAL APARTMENT GENERATION SYSTEM =====
 
-class TestApartmentRoom:
+class ApartmentRoom:
 	var name: String
 	var min_pos: Vector3
 	var max_pos: Vector3
@@ -1064,9 +1064,9 @@ class TestApartmentRoom:
 		is_private = private
 		connects_to_entry = entry_access
 
-class TestApartmentLayout:
+class ApartmentLayout:
 	var layout_name: String
-	var rooms: Array[TestApartmentRoom]
+	var rooms: Array[ApartmentRoom]
 	var corridors: Array[Dictionary]  # Hallway/connector spaces
 	var entry_zone: Vector3  # Area that must remain open near entrance
 	
@@ -1078,7 +1078,7 @@ class TestApartmentLayout:
 
 func _generate_universal_apartment_layout(layout_type: String, width: float, depth: float, variation: int) -> ApartmentLayout:
 	"""Generate apartment layout using universal room-based system"""
-	var layout = TestApartmentLayout.new(layout_type)
+	var layout = ApartmentLayout.new(layout_type)
 	var wall_thickness = 0.15
 	
 	# Define entry zone (front center area that must remain open)
@@ -1104,13 +1104,13 @@ func _generate_studio_rooms(layout: ApartmentLayout, width: float, depth: float,
 		# Variation 0: Enclosed bathroom + open living/kitchen space
 		
 		# Enclosed bathroom (left corner) - only truly private space
-		layout.rooms.append(TestApartmentRoom.new("Bathroom", 
+		layout.rooms.append(ApartmentRoom.new("Bathroom", 
 			Vector3(wall_thickness, 0, wall_thickness), 
 			Vector3(2.2, 0, 2.2), 
 			"bathroom", true, false))
 		
 		# Single large open space for living/kitchen/sleeping (excludes only bathroom)
-		layout.rooms.append(TestApartmentRoom.new("Open Living/Kitchen Space", 
+		layout.rooms.append(ApartmentRoom.new("Open Living/Kitchen Space", 
 			Vector3(2.2 + wall_thickness, 0, wall_thickness), 
 			Vector3(width - wall_thickness, 0, depth - wall_thickness), 
 			"living", false, true))
@@ -1118,13 +1118,13 @@ func _generate_studio_rooms(layout: ApartmentLayout, width: float, depth: float,
 		# Variation 1: Fully open concept with bathroom on opposite side
 		
 		# Enclosed bathroom (right corner) - only private space
-		layout.rooms.append(TestApartmentRoom.new("Bathroom", 
+		layout.rooms.append(ApartmentRoom.new("Bathroom", 
 			Vector3(width - 2.2, 0, wall_thickness), 
 			Vector3(width - wall_thickness, 0, 2.2), 
 			"bathroom", true, false))
 		
 		# Single large open living/kitchen/sleeping space (excludes only bathroom)
-		layout.rooms.append(TestApartmentRoom.new("Open Living/Kitchen Space", 
+		layout.rooms.append(ApartmentRoom.new("Open Living/Kitchen Space", 
 			Vector3(wall_thickness, 0, wall_thickness), 
 			Vector3(width - 2.2 - wall_thickness, 0, depth - wall_thickness), 
 			"living", false, true))
@@ -1135,47 +1135,47 @@ func _generate_one_bedroom_rooms(layout: ApartmentLayout, width: float, depth: f
 	
 	if variation == 0:
 		# Services on left, entry flows to living area
-		layout.rooms.append(TestApartmentRoom.new("Bathroom", 
+		layout.rooms.append(ApartmentRoom.new("Bathroom", 
 			Vector3(wall_thickness, 0, wall_thickness), 
 			Vector3(2.0, 0, 2.0), 
 			"bathroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Kitchen", 
+		layout.rooms.append(ApartmentRoom.new("Kitchen", 
 			Vector3(2.0, 0, wall_thickness), 
 			Vector3(4.5, 0, 2.0), 
 			"kitchen", false, true))
 		
 		# Living room (entry accessible, open to kitchen)
-		layout.rooms.append(TestApartmentRoom.new("Living Room", 
+		layout.rooms.append(ApartmentRoom.new("Living Room", 
 			Vector3(4.5, 0, wall_thickness), 
 			Vector3(width - wall_thickness, 0, half_depth), 
 			"living", false, true))
 		
 		# Bedroom (private, back area)
-		layout.rooms.append(TestApartmentRoom.new("Bedroom", 
+		layout.rooms.append(ApartmentRoom.new("Bedroom", 
 			Vector3(wall_thickness, 0, half_depth), 
 			Vector3(width - wall_thickness, 0, depth - wall_thickness), 
 			"bedroom", true, false))
 	else:
 		# Services on right, mirrored layout
-		layout.rooms.append(TestApartmentRoom.new("Bathroom", 
+		layout.rooms.append(ApartmentRoom.new("Bathroom", 
 			Vector3(width - 2.0, 0, wall_thickness), 
 			Vector3(width - wall_thickness, 0, 2.0), 
 			"bathroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Kitchen", 
+		layout.rooms.append(ApartmentRoom.new("Kitchen", 
 			Vector3(width - 4.5, 0, wall_thickness), 
 			Vector3(width - 2.0, 0, 2.0), 
 			"kitchen", false, true))
 		
 		# Living room (entry accessible, open to kitchen)
-		layout.rooms.append(TestApartmentRoom.new("Living Room", 
+		layout.rooms.append(ApartmentRoom.new("Living Room", 
 			Vector3(wall_thickness, 0, wall_thickness), 
 			Vector3(width - 4.5, 0, half_depth), 
 			"living", false, true))
 		
 		# Bedroom (private, back area)
-		layout.rooms.append(TestApartmentRoom.new("Bedroom", 
+		layout.rooms.append(ApartmentRoom.new("Bedroom", 
 			Vector3(wall_thickness, 0, half_depth), 
 			Vector3(width - wall_thickness, 0, depth - wall_thickness), 
 			"bedroom", true, false))
@@ -1187,58 +1187,58 @@ func _generate_two_bedroom_rooms(layout: ApartmentLayout, width: float, depth: f
 	
 	if variation == 0:
 		# Services on left side
-		layout.rooms.append(TestApartmentRoom.new("Bathroom", 
+		layout.rooms.append(ApartmentRoom.new("Bathroom", 
 			Vector3(wall_thickness, 0, wall_thickness), 
 			Vector3(2.5, 0, 2.5), 
 			"bathroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Kitchen", 
+		layout.rooms.append(ApartmentRoom.new("Kitchen", 
 			Vector3(2.5, 0, wall_thickness), 
 			Vector3(half_width, 0, 3.0), 
 			"kitchen", false, true))
 		
 		# Living/Dining (large open area including entry)
-		layout.rooms.append(TestApartmentRoom.new("Living/Dining", 
+		layout.rooms.append(ApartmentRoom.new("Living/Dining", 
 			Vector3(half_width, 0, wall_thickness), 
 			Vector3(width - wall_thickness, 0, half_depth), 
 			"living", false, true))
 		
 		# Bedrooms (private, back area)
-		layout.rooms.append(TestApartmentRoom.new("Bedroom 1", 
+		layout.rooms.append(ApartmentRoom.new("Bedroom 1", 
 			Vector3(wall_thickness, 0, half_depth), 
 			Vector3(half_width, 0, depth - wall_thickness), 
 			"bedroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Bedroom 2", 
+		layout.rooms.append(ApartmentRoom.new("Bedroom 2", 
 			Vector3(half_width, 0, half_depth), 
 			Vector3(width - wall_thickness, 0, depth - wall_thickness), 
 			"bedroom", true, false))
 	else:
 		# Open concept with services on right
-		layout.rooms.append(TestApartmentRoom.new("Bathroom", 
+		layout.rooms.append(ApartmentRoom.new("Bathroom", 
 			Vector3(width - 2.5, 0, wall_thickness), 
 			Vector3(width - wall_thickness, 0, 2.5), 
 			"bathroom", true, false))
 		
 		# Kitchen open to living (no full enclosure on living side)
-		layout.rooms.append(TestApartmentRoom.new("Kitchen", 
+		layout.rooms.append(ApartmentRoom.new("Kitchen", 
 			Vector3(half_width, 0, wall_thickness), 
 			Vector3(width - 2.5, 0, 2.8), 
 			"kitchen", false, true))
 		
 		# Large living/dining area (open concept, includes entry)
-		layout.rooms.append(TestApartmentRoom.new("Living/Dining", 
+		layout.rooms.append(ApartmentRoom.new("Living/Dining", 
 			Vector3(wall_thickness, 0, wall_thickness), 
 			Vector3(half_width, 0, half_depth), 
 			"living", false, true))
 		
 		# Bedrooms (private areas)
-		layout.rooms.append(TestApartmentRoom.new("Bedroom 1", 
+		layout.rooms.append(ApartmentRoom.new("Bedroom 1", 
 			Vector3(wall_thickness, 0, half_depth), 
 			Vector3(half_width, 0, depth - wall_thickness), 
 			"bedroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Bedroom 2", 
+		layout.rooms.append(ApartmentRoom.new("Bedroom 2", 
 			Vector3(half_width, 0, half_depth), 
 			Vector3(width - wall_thickness, 0, depth - wall_thickness), 
 			"bedroom", true, false))
@@ -1368,93 +1368,93 @@ func _generate_penthouse_rooms(layout: ApartmentLayout, width: float, depth: flo
 	
 	if variation == 0:
 		# Executive suite layout - ensure living area is entry accessible
-		layout.rooms.append(TestApartmentRoom.new("Master Bath", 
+		layout.rooms.append(ApartmentRoom.new("Master Bath", 
 			Vector3(wall_thickness, 0, wall_thickness), 
 			Vector3(3.0, 0, 2.5), 
 			"bathroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Walk-in Closet", 
+		layout.rooms.append(ApartmentRoom.new("Walk-in Closet", 
 			Vector3(3.0, 0, wall_thickness), 
 			Vector3(4.5, 0, 2.5), 
 			"closet", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Gourmet Kitchen", 
+		layout.rooms.append(ApartmentRoom.new("Gourmet Kitchen", 
 			Vector3(4.5, 0, wall_thickness), 
 			Vector3(width - 1.5, 0, 3.0), 
 			"kitchen", false, true))
 		
-		layout.rooms.append(TestApartmentRoom.new("Powder Room", 
+		layout.rooms.append(ApartmentRoom.new("Powder Room", 
 			Vector3(width - 1.5, 0, wall_thickness), 
 			Vector3(width - wall_thickness, 0, 1.5), 
 			"bathroom", false, false))
 		
 		# Grand living area (MUST be entry accessible for proper flow)
-		layout.rooms.append(TestApartmentRoom.new("Grand Living", 
+		layout.rooms.append(ApartmentRoom.new("Grand Living", 
 			Vector3(wall_thickness, 0, 3.0), 
 			Vector3(width - wall_thickness, 0, third_depth), 
 			"living", false, true))
 		
 		# Private areas (not directly accessible from entry)
-		layout.rooms.append(TestApartmentRoom.new("Private Office", 
+		layout.rooms.append(ApartmentRoom.new("Private Office", 
 			Vector3(wall_thickness, 0, third_depth), 
 			Vector3(quarter_width * 1.5, 0, 2*third_depth), 
 			"office", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Master Suite", 
+		layout.rooms.append(ApartmentRoom.new("Master Suite", 
 			Vector3(quarter_width * 1.5, 0, third_depth), 
 			Vector3(quarter_width * 3, 0, 2*third_depth), 
 			"bedroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Guest Suite", 
+		layout.rooms.append(ApartmentRoom.new("Guest Suite", 
 			Vector3(quarter_width * 3, 0, third_depth), 
 			Vector3(width - 2, 0, 2*third_depth), 
 			"bedroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Guest Bath", 
+		layout.rooms.append(ApartmentRoom.new("Guest Bath", 
 			Vector3(width - 2, 0, 2*third_depth), 
 			Vector3(width - wall_thickness, 0, depth - wall_thickness), 
 			"bathroom", true, false))
 	else:
 		# Entertainment-focused layout - dining area is entry accessible
-		layout.rooms.append(TestApartmentRoom.new("Wet Bar", 
+		layout.rooms.append(ApartmentRoom.new("Wet Bar", 
 			Vector3(wall_thickness, 0, wall_thickness), 
 			Vector3(2.5, 0, 2.0), 
 			"kitchen", false, true))
 		
-		layout.rooms.append(TestApartmentRoom.new("Chef's Kitchen", 
+		layout.rooms.append(ApartmentRoom.new("Chef's Kitchen", 
 			Vector3(2.5, 0, wall_thickness), 
 			Vector3(width - 2.5, 0, 2.5), 
 			"kitchen", false, true))
 		
-		layout.rooms.append(TestApartmentRoom.new("Butler's Pantry", 
+		layout.rooms.append(ApartmentRoom.new("Butler's Pantry", 
 			Vector3(width - 2.5, 0, wall_thickness), 
 			Vector3(width - wall_thickness, 0, 2.5), 
 			"kitchen", false, false))
 		
 		# Formal dining (MUST be entry accessible)
-		layout.rooms.append(TestApartmentRoom.new("Formal Dining", 
+		layout.rooms.append(ApartmentRoom.new("Formal Dining", 
 			Vector3(wall_thickness, 0, 2.5), 
 			Vector3(width - wall_thickness, 0, third_depth - 0.5), 
 			"dining", false, true))
 		
 		# Entertainment areas (accessible from dining)
-		layout.rooms.append(TestApartmentRoom.new("Media Room", 
+		layout.rooms.append(ApartmentRoom.new("Media Room", 
 			Vector3(wall_thickness, 0, third_depth - 0.5), 
 			Vector3(quarter_width * 2, 0, third_depth + 1), 
 			"living", false, false))
 		
 		# Private sleeping areas
-		layout.rooms.append(TestApartmentRoom.new("Master Suite", 
+		layout.rooms.append(ApartmentRoom.new("Master Suite", 
 			Vector3(quarter_width * 2, 0, third_depth - 0.5), 
 			Vector3(quarter_width * 3.5, 0, 2*third_depth), 
 			"bedroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Spa Bathroom", 
+		layout.rooms.append(ApartmentRoom.new("Spa Bathroom", 
 			Vector3(quarter_width * 3.5, 0, third_depth - 0.5), 
 			Vector3(width - wall_thickness, 0, 2*third_depth), 
 			"bathroom", true, false))
 		
-		layout.rooms.append(TestApartmentRoom.new("Guest Quarters", 
+		layout.rooms.append(ApartmentRoom.new("Guest Quarters", 
 			Vector3(wall_thickness, 0, third_depth + 1), 
 			Vector3(quarter_width * 2, 0, depth - wall_thickness), 
 			"bedroom", true, false))
