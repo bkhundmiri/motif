@@ -70,6 +70,8 @@ func _load_generation_data():
 		print("ERROR: Failed to load generation config")
 		return
 	
+	print("CityGenerator initialized")
+
 func _load_json_file(file_path: String) -> Dictionary:
 	"""Load and parse a JSON file"""
 	if not FileAccess.file_exists(file_path):
