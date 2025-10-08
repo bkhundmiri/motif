@@ -89,6 +89,7 @@ func _setup_auto_save_timer():
 	auto_save_timer.timeout.connect(_on_auto_save_timer_timeout)
 	auto_save_timer.autostart = true
 	add_child(auto_save_timer)
+	print("GameManager auto-save timer set to %d minutes" % (auto_save_interval / 60))
 
 func _on_auto_save_timer_timeout():
 	"""Auto-save game state every 5 minutes"""
@@ -127,6 +128,8 @@ func sleep(hours: int = 8):
 	is_sleeping = true
 	emit_signal("sleep_started")
 	
+	print("Sleeping for %d hours..." % hours)
+	
 	# Advance time by sleep duration
 	advance_time(hours * 60)  # Convert hours to minutes
 	
@@ -134,6 +137,8 @@ func sleep(hours: int = 8):
 	is_sleeping = false
 	emit_signal("sleep_ended")
 	
+	print("Woke up at: %s" % get_full_time_string())
+
 func pause_game():
 	"""Pause the game time progression"""
 	game_paused = true
@@ -159,6 +164,8 @@ func sleep_with_duration(hours: float):
 	
 	is_sleeping = true
 	emit_signal("sleep_started")
+	
+	print("Sleeping for %.1f hours..." % hours)
 	
 	# Start fast-forward effect (5 seconds regardless of duration)
 	_start_fast_forward_sleep(hours)
