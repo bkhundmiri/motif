@@ -7,6 +7,7 @@ class_name EscMenu
 var background_overlay: ColorRect
 var menu_panel: Panel
 var delete_save_button: Button
+var apartment_selector_button: Button
 var cancel_button: Button
 var confirm_dialog: AcceptDialog
 
@@ -80,6 +81,13 @@ func _setup_ui():
 	delete_save_button.custom_minimum_size.y = 50
 	vbox.add_child(delete_save_button)
 	
+	# Apartment selector button (only show in apartment scenes)
+	if _is_in_apartment_scene():
+		apartment_selector_button = Button.new()
+		apartment_selector_button.text = "Return to Apartment Selector"
+		apartment_selector_button.custom_minimum_size.y = 50
+		vbox.add_child(apartment_selector_button)
+	
 	# Cancel button
 	cancel_button = Button.new()
 	cancel_button.text = "Cancel (ESC)"
@@ -102,6 +110,8 @@ func _setup_ui():
 func _connect_signals():
 	"""Connect button signals"""
 	delete_save_button.pressed.connect(_on_delete_save_pressed)
+	if apartment_selector_button:
+		apartment_selector_button.pressed.connect(_on_apartment_selector_pressed)
 	cancel_button.pressed.connect(_on_cancel_pressed)
 	confirm_dialog.confirmed.connect(_on_delete_confirmed)
 	
@@ -148,8 +158,9 @@ func _close_menu():
 	
 	visible = false
 	
-	# Restore mouse capture for first-person view
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	# Restore mouse capture for first-person view (only in apartment scenes)
+	if _is_in_apartment_scene():
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	
 	print("ESC menu closed - Game resumed")
 
@@ -170,3 +181,13 @@ func _on_background_clicked(event):
 	"""Close menu when clicking on background"""
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_close_menu()
+
+func _is_in_apartment_scene() -> bool:
+	"""Check if we're currently in an apartment scene"""
+	var current_scene_path = get_tree().current_scene.scene_file_path
+	return "/apartments/" in current_scene_path and current_scene_path != "res://scenes/apartments/apartment_selector.tscn"
+
+func _on_apartment_selector_pressed():
+	"""Return to apartment selector"""
+	_close_menu()
+	ApartmentManager.return_to_selector()

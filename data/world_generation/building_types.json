@@ -1,0 +1,209 @@
+{
+  "residential_buildings": {
+    "apartment_tower": {
+      "height_range": {"min_floors": 12, "max_floors": 18},
+      "building_dimensions": {"width": 50.0, "depth": 30.0, "floor_height": 3.5},
+      "floor_configuration": {
+        "ground_floor": {
+          "type": "lobby_commercial",
+          "dimensions": {"width": 50.0, "depth": 30.0, "height": 4.0},
+          "spaces": ["main_lobby", "mailroom", "security_desk", "small_retail"],
+          "required_features": ["elevator_access", "stairwell_access", "building_entrance"]
+        },
+        "residential_floors": {
+          "units_per_floor": {"min": 4, "max": 6},
+          "floor_range": {"start": 2, "end": -3},
+          "floor_dimensions": {"width": 50.0, "depth": 30.0, "height": 3.0},
+          "unit_distribution": {
+            "studio": 0.15,
+            "one_bedroom": 0.35,
+            "two_bedroom_one_bath": 0.35,
+            "two_bedroom_two_bath": 0.15
+          },
+          "unit_placement": {
+            "units_per_row": 2,
+            "hallway_width": 2.5,
+            "unit_spacing": 0.5
+          },
+          "common_areas": ["hallway", "utility_room", "trash_chute"]
+        },
+        "penthouse_floors": {
+          "floor_range": {"start": -2, "end": -1},
+          "units_per_floor": 2,
+          "unit_types": ["penthouse"],
+          "special_features": ["private_elevator", "roof_access", "premium_finishes"]
+        },
+        "office_floors": {
+          "floor_range": {"start": 2, "end": 5},
+          "alternative_use": true,
+          "office_types": ["law_firm", "accounting", "consulting", "tech_startup"],
+          "spaces_per_floor": {"min": 2, "max": 4}
+        }
+      },
+      "building_amenities": [
+        "fitness_center",
+        "rooftop_terrace",
+        "concierge_service",
+        "package_room",
+        "bike_storage",
+        "parking_garage"
+      ],
+      "target_demographics": ["urban_professionals", "young_executives", "empty_nesters"],
+      "construction_style": ["modern_glass", "contemporary_concrete", "mixed_materials"],
+      "npc_capacity": {"residents": {"min": 48, "max": 108}, "workers": {"min": 20, "max": 60}}
+    },
+    "mid_rise_residential": {
+      "height_range": {"min_floors": 4, "max_floors": 10},
+      "floor_configuration": {
+        "ground_floor": {
+          "type": "residential_entry",
+          "spaces": ["lobby", "mailroom", "storage"],
+          "required_features": ["main_entrance", "stairwell", "elevator_optional"]
+        },
+        "residential_floors": {
+          "units_per_floor": {"min": 6, "max": 8},
+          "floor_range": {"start": 1, "end": -1},
+          "unit_distribution": {
+            "studio": 0.25,
+            "one_bedroom": 0.45,
+            "two_bedroom_one_bath": 0.25,
+            "two_bedroom_two_bath": 0.05
+          },
+          "common_areas": ["central_hallway", "utility_closet"]
+        }
+      },
+      "building_amenities": [
+        "laundry_room",
+        "small_fitness_area",
+        "courtyard",
+        "resident_parking"
+      ],
+      "target_demographics": ["families", "young_professionals", "retirees"],
+      "construction_style": ["brick_traditional", "modern_suburban", "industrial_loft"],
+      "npc_capacity": {"residents": {"min": 24, "max": 80}, "workers": {"min": 2, "max": 8}}
+    }
+  },
+  "commercial_properties": {
+    "street_level_retail": {
+      "space_types": {
+        "restaurant": {
+          "size_range": {"min_sqm": 80, "max_sqm": 200},
+          "required_areas": ["dining_room", "kitchen", "storage", "restrooms"],
+          "seating_capacity": {"min": 20, "max": 80},
+          "cuisine_types": ["italian", "asian_fusion", "american_diner", "coffee_shop", "fast_casual"],
+          "npc_roles": ["chef", "server", "manager", "cashier"],
+          "operating_hours": {"open": 7, "close": 22}
+        },
+        "retail_shop": {
+          "size_range": {"min_sqm": 40, "max_sqm": 120},
+          "required_areas": ["sales_floor", "storage", "checkout", "fitting_room_optional"],
+          "shop_types": ["clothing", "electronics", "bookstore", "pharmacy", "convenience"],
+          "npc_roles": ["store_manager", "sales_associate", "cashier", "stock_person"],
+          "operating_hours": {"open": 9, "close": 20}
+        },
+        "service_business": {
+          "size_range": {"min_sqm": 30, "max_sqm": 100},
+          "business_types": ["hair_salon", "dry_cleaner", "repair_shop", "real_estate_office"],
+          "required_areas": ["service_area", "waiting_area", "storage"],
+          "npc_roles": ["owner_operator", "service_technician", "receptionist"],
+          "operating_hours": {"open": 8, "close": 18}
+        }
+      },
+      "layout_features": {
+        "storefront": ["large_windows", "entry_door", "signage_area"],
+        "accessibility": ["wheelchair_accessible", "street_level_entry"],
+        "utilities": ["commercial_electrical", "plumbing", "hvac", "internet_ready"]
+      },
+      "placement_rules": {
+        "street_facing": true,
+        "foot_traffic_areas": ["main_commercial_street", "intersection_corners", "transit_adjacent"],
+        "clustering": ["restaurant_row", "shopping_district", "mixed_use_ground_floor"]
+      }
+    }
+  },
+  "office_spaces": {
+    "corporate_office": {
+      "size_categories": {
+        "small_office": {
+          "size_range": {"min_sqm": 50, "max_sqm": 120},
+          "layout": ["open_workspace", "1_private_office", "small_meeting_room"],
+          "employee_capacity": {"min": 3, "max": 8},
+          "business_types": ["accounting_firm", "law_practice", "consulting", "insurance"]
+        },
+        "medium_office": {
+          "size_range": {"min_sqm": 120, "max_sqm": 300},
+          "layout": ["open_workspace", "2_private_offices", "conference_room", "break_room"],
+          "employee_capacity": {"min": 8, "max": 20},
+          "business_types": ["marketing_agency", "architecture_firm", "engineering", "financial_services"]
+        },
+        "large_office": {
+          "size_range": {"min_sqm": 300, "max_sqm": 500},
+          "layout": ["open_workspace", "4_private_offices", "conference_room", "break_room", "reception"],
+          "employee_capacity": {"min": 20, "max": 35},
+          "business_types": ["tech_company", "corporate_headquarters", "large_law_firm", "investment_firm"]
+        }
+      },
+      "required_areas": {
+        "workspace": ["desks", "computers", "storage"],
+        "meeting_spaces": ["conference_table", "presentation_equipment"],
+        "support_areas": ["printer_station", "supply_storage", "coat_closet"]
+      },
+      "npc_roles_by_size": {
+        "small_office": ["manager", "associates", "assistant"],
+        "medium_office": ["manager", "senior_associates", "associates", "administrative_staff"],
+        "large_office": ["executives", "managers", "senior_staff", "associates", "administrative_staff", "receptionist"]
+      }
+    }
+  },
+  "residential_houses": {
+    "single_family_home": {
+      "size_categories": {
+        "small_house": {
+          "total_area_sqm": 120,
+          "bedrooms": 2,
+          "bathrooms": 1,
+          "layout": ["living_room", "kitchen", "dining_area", "2_bedrooms", "1_bathroom"],
+          "outdoor_space": ["small_yard", "driveway"],
+          "target_demographics": ["starter_families", "retirees"]
+        },
+        "medium_house": {
+          "total_area_sqm": 180,
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "layout": ["living_room", "kitchen", "dining_room", "family_room", "3_bedrooms", "2_bathrooms"],
+          "outdoor_space": ["backyard", "front_yard", "driveway", "garage"],
+          "target_demographics": ["families", "professionals"]
+        },
+        "large_house": {
+          "total_area_sqm": 250,
+          "bedrooms": 4,
+          "bathrooms": 3,
+          "layout": ["living_room", "kitchen", "dining_room", "family_room", "home_office", "4_bedrooms", "3_bathrooms"],
+          "outdoor_space": ["large_backyard", "front_yard", "driveway", "2_car_garage"],
+          "target_demographics": ["large_families", "executives"]
+        }
+      },
+      "architectural_styles": ["colonial", "craftsman", "ranch", "contemporary"],
+      "luxury_features": ["fireplace", "hardwood_floors", "updated_kitchen", "master_suite", "deck_patio"],
+      "npc_capacity": {"residents": {"min": 1, "max": 6}}
+    },
+    "townhouse": {
+      "size_categories": {
+        "standard_townhouse": {
+          "total_area_sqm": 150,
+          "floors": 2,
+          "bedrooms": 3,
+          "bathrooms": 2.5,
+          "layout": {
+            "ground_floor": ["living_room", "kitchen", "dining_area", "half_bath"],
+            "upper_floor": ["3_bedrooms", "2_full_bathrooms"]
+          },
+          "outdoor_space": ["small_patio", "shared_green_space"],
+          "target_demographics": ["young_families", "professionals"]
+        }
+      },
+      "community_features": ["shared_amenities", "hoa_management", "landscaping"],
+      "npc_capacity": {"residents": {"min": 2, "max": 5}}
+    }
+  }
+}

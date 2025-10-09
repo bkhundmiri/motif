@@ -1,0 +1,12 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://bgcta151j6n8a"]
+
+[ext_resource type="Texture2D" uid="uid://bipo72nfl8dp7" path="res://assets/furniture/tables/giotto-c_coffee_table_4.png" id="1_chy01"]
+
+[resource]
+resource_name = "Ceramic_dark_cyan.001"
+cull_mode = 2
+albedo_color = Color(0.063246876, 0.16533893, 0.21028847, 1)
+metallic_texture = ExtResource("1_chy01")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("1_chy01")
+roughness_texture_channel = 1

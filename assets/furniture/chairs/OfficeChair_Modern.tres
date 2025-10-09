@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" load_steps=4 format=3 uid="uid://b2niml6pyeqey"]
+
+[ext_resource type="Texture2D" uid="uid://d0jeomtlkcsy0" path="res://assets/furniture/chairs/office_chair_modern_0.png" id="1_rq8x5"]
+[ext_resource type="Texture2D" uid="uid://brv6s480ccn43" path="res://assets/furniture/chairs/office_chair_modern_1.png" id="2_2tiqo"]
+[ext_resource type="Texture2D" uid="uid://78nyyl8cwbly" path="res://assets/furniture/chairs/office_chair_modern_2.png" id="3_ubjco"]
+
+[resource]
+resource_name = "OfficeChair_Modern"
+cull_mode = 2
+albedo_texture = ExtResource("1_rq8x5")
+metallic = 1.0
+metallic_texture = ExtResource("2_2tiqo")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("2_2tiqo")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("3_ubjco")
+ao_enabled = true
+ao_texture = ExtResource("2_2tiqo")

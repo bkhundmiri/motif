@@ -1,0 +1,233 @@
+{
+  "furniture_categories": {
+    "seating": [
+      {
+        "id": "sofa_modern",
+        "name": "Modern Sofa",
+        "size": {"width": 2.0, "depth": 0.8, "height": 0.8},
+        "placement_rules": ["against_wall", "center_room"],
+        "room_types": ["living_room", "penthouse_lounge"],
+        "luxury_level": "standard",
+        "variants": ["fabric_gray", "leather_black", "fabric_beige"]
+      },
+      {
+        "id": "luxury_sectional",
+        "name": "Luxury Sectional Sofa",
+        "size": {"width": 3.5, "depth": 2.2, "height": 0.9},
+        "placement_rules": ["corner", "center_room"],
+        "room_types": ["penthouse_lounge", "luxury_living"],
+        "luxury_level": "luxury",
+        "variants": ["leather_white", "velvet_navy", "leather_cognac"]
+      },
+      {
+        "id": "office_chair",
+        "name": "Office Chair",
+        "size": {"width": 0.6, "depth": 0.6, "height": 1.2},
+        "placement_rules": ["desk_pairing"],
+        "room_types": ["office", "home_office", "study"],
+        "luxury_level": "standard",
+        "variants": ["mesh_black", "leather_brown", "fabric_gray"]
+      },
+      {
+        "id": "executive_chair",
+        "name": "Executive Leather Chair",
+        "size": {"width": 0.7, "depth": 0.7, "height": 1.3},
+        "placement_rules": ["desk_pairing"],
+        "room_types": ["executive_office", "penthouse_office"],
+        "luxury_level": "luxury",
+        "variants": ["leather_black", "leather_brown"]
+      }
+    ],
+    "tables": [
+      {
+        "id": "coffee_table",
+        "name": "Coffee Table",
+        "size": {"width": 1.2, "depth": 0.6, "height": 0.4},
+        "placement_rules": ["sofa_pairing", "center_room"],
+        "room_types": ["living_room", "penthouse_lounge"],
+        "luxury_level": "standard",
+        "variants": ["wood_oak", "glass_modern", "wood_walnut"],
+        "asset_info": {
+          "scene_path": "res://scenes/furniture/table_coffee_modern.tscn",
+          "model_scale": 0.2,
+          "scale_reason": "Original asset was oversized, scaled to realistic coffee table dimensions"
+        }
+      },
+      {
+        "id": "dining_table_small",
+        "name": "Small Dining Table",
+        "size": {"width": 1.0, "depth": 1.0, "height": 0.75},
+        "placement_rules": ["center_room", "wall_adjacent"],
+        "room_types": ["kitchen", "studio"],
+        "luxury_level": "standard",
+        "variants": ["wood_pine", "wood_oak", "metal_industrial"]
+      },
+      {
+        "id": "dining_table_large",
+        "name": "Large Dining Table",
+        "size": {"width": 2.4, "depth": 1.0, "height": 0.75},
+        "placement_rules": ["center_room"],
+        "room_types": ["dining_room", "penthouse_dining"],
+        "luxury_level": "luxury",
+        "variants": ["wood_mahogany", "glass_elegant", "marble_top"]
+      },
+      {
+        "id": "office_desk",
+        "name": "Office Desk",
+        "size": {"width": 1.4, "depth": 0.7, "height": 0.75},
+        "placement_rules": ["against_wall", "corner"],
+        "room_types": ["office", "home_office", "study"],
+        "luxury_level": "standard",
+        "variants": ["wood_oak", "metal_modern", "glass_top"]
+      }
+    ],
+    "storage": [
+      {
+        "id": "wardrobe",
+        "name": "Wardrobe",
+        "size": {"width": 1.2, "depth": 0.6, "height": 2.0},
+        "placement_rules": ["against_wall"],
+        "room_types": ["bedroom", "penthouse_bedroom"],
+        "luxury_level": "standard",
+        "variants": ["wood_oak", "wood_white", "mirrored"]
+      },
+      {
+        "id": "bookshelf",
+        "name": "Bookshelf",
+        "size": {"width": 0.8, "depth": 0.3, "height": 1.8},
+        "placement_rules": ["against_wall"],
+        "room_types": ["living_room", "office", "study", "penthouse_library"],
+        "luxury_level": "standard",
+        "variants": ["wood_oak", "wood_walnut", "metal_industrial"]
+      },
+      {
+        "id": "filing_cabinet",
+        "name": "Filing Cabinet",
+        "size": {"width": 0.4, "depth": 0.6, "height": 1.3},
+        "placement_rules": ["against_wall", "desk_adjacent"],
+        "room_types": ["office", "home_office"],
+        "luxury_level": "standard",
+        "variants": ["metal_gray", "wood_oak"]
+      }
+    ],
+    "beds": [
+      {
+        "id": "single_bed",
+        "name": "Single Bed",
+        "size": {"width": 1.0, "depth": 2.0, "height": 0.6},
+        "placement_rules": ["against_wall", "corner"],
+        "room_types": ["bedroom", "studio"],
+        "luxury_level": "standard",
+        "variants": ["wood_pine", "metal_frame"]
+      },
+      {
+        "id": "double_bed",
+        "name": "Double Bed",
+        "size": {"width": 1.4, "depth": 2.0, "height": 0.6},
+        "placement_rules": ["against_wall", "center_room"],
+        "room_types": ["bedroom"],
+        "luxury_level": "standard",
+        "variants": ["wood_oak", "upholstered_gray", "metal_frame"]
+      },
+      {
+        "id": "king_bed",
+        "name": "King Size Bed",
+        "size": {"width": 1.8, "depth": 2.1, "height": 0.7},
+        "placement_rules": ["center_room", "against_wall"],
+        "room_types": ["master_bedroom", "penthouse_bedroom"],
+        "luxury_level": "luxury",
+        "variants": ["upholstered_luxury", "wood_mahogany", "tufted_velvet"]
+      }
+    ],
+    "appliances": [
+      {
+        "id": "refrigerator",
+        "name": "Refrigerator",
+        "size": {"width": 0.6, "depth": 0.7, "height": 1.8},
+        "placement_rules": ["against_wall", "kitchen_counter_adjacent"],
+        "room_types": ["kitchen"],
+        "luxury_level": "standard",
+        "variants": ["white", "stainless_steel", "black"]
+      },
+      {
+        "id": "stove",
+        "name": "Stove",
+        "size": {"width": 0.6, "depth": 0.6, "height": 0.9},
+        "placement_rules": ["against_wall", "kitchen_counter_integrated"],
+        "room_types": ["kitchen"],
+        "luxury_level": "standard",
+        "variants": ["gas_white", "electric_black", "gas_stainless"]
+      },
+      {
+        "id": "tv_small",
+        "name": "Small TV",
+        "size": {"width": 0.8, "depth": 0.1, "height": 0.5},
+        "placement_rules": ["wall_mounted", "tv_stand"],
+        "room_types": ["bedroom", "kitchen", "office"],
+        "luxury_level": "standard",
+        "variants": ["32_inch", "40_inch"]
+      },
+      {
+        "id": "tv_large",
+        "name": "Large TV",
+        "size": {"width": 1.4, "depth": 0.1, "height": 0.8},
+        "placement_rules": ["wall_mounted", "entertainment_center"],
+        "room_types": ["living_room", "penthouse_lounge"],
+        "luxury_level": "luxury",
+        "variants": ["55_inch", "65_inch", "75_inch"]
+      }
+    ],
+    "bathroom": [
+      {
+        "id": "toilet",
+        "name": "Toilet",
+        "size": {"width": 0.4, "depth": 0.7, "height": 0.8},
+        "placement_rules": ["corner", "against_wall"],
+        "room_types": ["bathroom", "half_bath"],
+        "luxury_level": "standard",
+        "variants": ["white_standard", "white_elongated"]
+      },
+      {
+        "id": "sink_basic",
+        "name": "Basic Sink",
+        "size": {"width": 0.6, "depth": 0.5, "height": 0.9},
+        "placement_rules": ["against_wall"],
+        "room_types": ["bathroom", "half_bath"],
+        "luxury_level": "standard",
+        "variants": ["white_pedestal", "white_vanity"]
+      },
+      {
+        "id": "bathtub",
+        "name": "Bathtub",
+        "size": {"width": 1.5, "depth": 0.7, "height": 0.6},
+        "placement_rules": ["against_wall", "corner"],
+        "room_types": ["bathroom"],
+        "luxury_level": "standard",
+        "variants": ["white_standard", "white_corner"]
+      },
+      {
+        "id": "luxury_bathtub",
+        "name": "Luxury Jetted Tub",
+        "size": {"width": 1.8, "depth": 1.0, "height": 0.6},
+        "placement_rules": ["center_room", "corner"],
+        "room_types": ["master_bathroom", "penthouse_bathroom"],
+        "luxury_level": "luxury",
+        "variants": ["white_jetted", "marble_surround"]
+      }
+    ]
+  },
+  "placement_contexts": {
+    "room_adjacency": {
+      "kitchen_counter_adjacent": "Placed next to kitchen counters",
+      "desk_adjacent": "Placed near or next to desks",
+      "sofa_pairing": "Positioned to complement sofas",
+      "entertainment_center": "Part of entertainment setup"
+    },
+    "wall_positions": {
+      "against_wall": "Flush against room walls",
+      "corner": "Positioned in room corners",
+      "center_room": "Centrally located in room",
+      "wall_mounted": "Mounted on walls"
+    }
+  }
+}

@@ -1,0 +1,370 @@
+[gd_scene load_steps=25 format=3 uid="uid://c0c8rrmib5tap"]
+
+[ext_resource type="Script" uid="uid://dmsjho8ml6tqg" path="res://scripts/apartments/apartment_unit.gd" id="1_apartment_unit"]
+[ext_resource type="Script" uid="uid://b3a1yr3rmtpoi" path="res://scripts/cameras/apartment_camera_controller.gd" id="2_camera_controller"]
+[ext_resource type="Script" uid="uid://cflmdj51rtgrb" path="res://scripts/ui/esc_menu.gd" id="3_esc_menu"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(10, 0.2, 8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(10, 0.2, 8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.85, 0.8, 0.75, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_segment"]
+size = Vector3(0.2, 3, 1.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_segment"]
+size = Vector3(0.2, 3, 3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.95, 0.95, 0.9, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_long"]
+size = Vector3(0.2, 3, 8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_long"]
+size = Vector3(0.2, 3, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_short"]
+size = Vector3(10, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_short"]
+size = Vector3(10, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_huoyo"]
+size = Vector3(0.2, 3, 1.7)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_interior_wall_short"]
+size = Vector3(4, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nwal5"]
+size = Vector3(3.2, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_87fog"]
+size = Vector3(4.2, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_doorframe"]
+size = Vector3(0.1, 2.5, 1.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_doorframe"]
+size = Vector3(0.1, 2.5, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_doorframe"]
+albedo_color = Color(0.8, 0.8, 0.8, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_door"]
+size = Vector3(0.05, 2.5, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_door"]
+size = Vector3(0.05, 2.5, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
+albedo_color = Color(0.6, 0.4, 0.2, 1)
+
+[sub_resource type="Environment" id="Environment_default"]
+background_mode = 1
+background_color = Color(0.7, 0.8, 0.9, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.4
+
+[node name="StudioApartment" type="Node3D"]
+script = ExtResource("1_apartment_unit")
+apartment_id = "apt_studio_001"
+
+[node name="Structure" type="Node3D" parent="."]
+
+[node name="Floor" type="StaticBody3D" parent="Structure"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/Floor"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+
+[node name="ExteriorWalls" type="Node3D" parent="Structure"]
+
+[node name="WallLeft" type="StaticBody3D" parent="Structure/ExteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.5, -2)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/ExteriorWalls/WallLeft"]
+shape = SubResource("BoxShape3D_wall_segment")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/ExteriorWalls/WallLeft"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.4530573)
+mesh = SubResource("BoxMesh_wall_segment")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallLeftUpper" type="StaticBody3D" parent="Structure/ExteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.5, 2.48571)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/ExteriorWalls/WallLeftUpper"]
+shape = SubResource("BoxShape3D_wall_segment")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/ExteriorWalls/WallLeftUpper"]
+mesh = SubResource("BoxMesh_wall_segment")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallRight" type="StaticBody3D" parent="Structure/ExteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/ExteriorWalls/WallRight"]
+shape = SubResource("BoxShape3D_wall_long")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/ExteriorWalls/WallRight"]
+mesh = SubResource("BoxMesh_wall_long")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallBack" type="StaticBody3D" parent="Structure/ExteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -4)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/ExteriorWalls/WallBack"]
+shape = SubResource("BoxShape3D_wall_short")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/ExteriorWalls/WallBack"]
+mesh = SubResource("BoxMesh_wall_short")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallFront" type="StaticBody3D" parent="Structure/ExteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 4)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/ExteriorWalls/WallFront"]
+shape = SubResource("BoxShape3D_wall_short")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/ExteriorWalls/WallFront"]
+mesh = SubResource("BoxMesh_wall_short")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallFrontDoor" type="StaticBody3D" parent="Structure/ExteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.5, 0.43193388)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/ExteriorWalls/WallFrontDoor"]
+shape = SubResource("BoxShape3D_wall_segment")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/ExteriorWalls/WallFrontDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.4530573)
+mesh = SubResource("BoxMesh_huoyo")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="InteriorWalls" type="Node3D" parent="Structure"]
+
+[node name="BathroomWallVertical" type="StaticBody3D" parent="Structure/InteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9, 1.5, -2.4971704)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/InteriorWalls/BathroomWallVertical"]
+shape = SubResource("BoxShape3D_wall_segment")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/InteriorWalls/BathroomWallVertical"]
+mesh = SubResource("BoxMesh_wall_segment")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="KitchenWallVertical" type="StaticBody3D" parent="Structure/InteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9, 1.5, 2.5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/InteriorWalls/KitchenWallVertical"]
+shape = SubResource("BoxShape3D_wall_segment")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/InteriorWalls/KitchenWallVertical"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.96647286, 0, 0)
+mesh = SubResource("BoxMesh_wall_segment")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="BathroomWallHorizontal" type="StaticBody3D" parent="Structure/InteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.5, -0.9)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/InteriorWalls/BathroomWallHorizontal"]
+shape = SubResource("BoxShape3D_interior_wall_short")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/InteriorWalls/BathroomWallHorizontal"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.41733503, 0, 0)
+mesh = SubResource("BoxMesh_nwal5")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="KitchenWallHorizontal" type="StaticBody3D" parent="Structure/InteriorWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.5, 0.9)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/InteriorWalls/KitchenWallHorizontal"]
+shape = SubResource("BoxShape3D_interior_wall_short")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/InteriorWalls/KitchenWallHorizontal"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.01849866, 0, 0)
+mesh = SubResource("BoxMesh_87fog")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="Doors" type="Node3D" parent="Structure"]
+
+[node name="EntranceDoor" type="Node3D" parent="Structure/Doors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.03368, 0, 0)
+
+[node name="DoorFrame" type="StaticBody3D" parent="Structure/Doors/EntranceDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/Doors/EntranceDoor/DoorFrame"]
+shape = SubResource("BoxShape3D_doorframe")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/Doors/EntranceDoor/DoorFrame"]
+mesh = SubResource("BoxMesh_doorframe")
+surface_material_override/0 = SubResource("StandardMaterial3D_doorframe")
+
+[node name="Door" type="StaticBody3D" parent="Structure/Doors/EntranceDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, 1.25, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/Doors/EntranceDoor/Door"]
+shape = SubResource("BoxShape3D_door")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/Doors/EntranceDoor/Door"]
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("StandardMaterial3D_door")
+
+[node name="BathroomDoor" type="Node3D" parent="Structure/Doors"]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -3.5625076, 0, -0.8002828)
+
+[node name="DoorFrame" type="StaticBody3D" parent="Structure/Doors/BathroomDoor"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 1.25, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/Doors/BathroomDoor/DoorFrame"]
+shape = SubResource("BoxShape3D_doorframe")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/Doors/BathroomDoor/DoorFrame"]
+mesh = SubResource("BoxMesh_doorframe")
+surface_material_override/0 = SubResource("StandardMaterial3D_doorframe")
+
+[node name="Door" type="StaticBody3D" parent="Structure/Doors/BathroomDoor"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 1.25, -0.05)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/Doors/BathroomDoor/Door"]
+shape = SubResource("BoxShape3D_door")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/Doors/BathroomDoor/Door"]
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("StandardMaterial3D_door")
+
+[node name="Openings" type="Node3D" parent="Structure"]
+
+[node name="KitchenArchway" type="Node3D" parent="Structure/Openings"]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.81290674, 0, 2.4929047)
+
+[node name="ArchFrame" type="StaticBody3D" parent="Structure/Openings/KitchenArchway"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 1.25, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structure/Openings/KitchenArchway/ArchFrame"]
+shape = SubResource("BoxShape3D_doorframe")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structure/Openings/KitchenArchway/ArchFrame"]
+mesh = SubResource("BoxMesh_doorframe")
+surface_material_override/0 = SubResource("StandardMaterial3D_doorframe")
+
+[node name="RoomLabels" type="Node3D" parent="."]
+
+[node name="MainRoomLabel" type="Label3D" parent="RoomLabels"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2, 4, 0)
+text = "MAIN ROOM
+Living & Sleeping"
+outline_size = 8
+
+[node name="KitchenLabel" type="Label3D" parent="RoomLabels"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -3, 4, 2)
+text = "KITCHEN"
+font_size = 24
+outline_size = 6
+
+[node name="BathroomLabel" type="Label3D" parent="RoomLabels"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -3, 4, -2)
+text = "BATHROOM"
+font_size = 24
+outline_size = 6
+
+[node name="EntranceLabel" type="Label3D" parent="RoomLabels"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -3.5, 4, 0)
+text = "ENTRANCE"
+font_size = 20
+outline_size = 5
+
+[node name="Lighting" type="Node3D" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Lighting"]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 6, 0)
+light_energy = 0.8
+shadow_enabled = true
+
+[node name="MainRoomLight" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 2.5, 0)
+light_energy = 0.6
+omni_range = 4.0
+
+[node name="KitchenLight" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 2.2, 1.25)
+light_energy = 0.4
+omni_range = 2.5
+
+[node name="BathroomLight" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 2.2, -1.6)
+light_energy = 0.3
+omni_range = 2.0
+
+[node name="FurnitureZones" type="Node3D" parent="."]
+
+[node name="SleepingZone" type="Marker3D" parent="FurnitureZones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -2)
+
+[node name="LivingZone" type="Marker3D" parent="FurnitureZones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, 2)
+
+[node name="WorkZone" type="Marker3D" parent="FurnitureZones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="KitchenZone" type="Marker3D" parent="FurnitureZones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 2)
+
+[node name="BathroomZone" type="Marker3D" parent="FurnitureZones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -2)
+
+[node name="EntryZone" type="Marker3D" parent="FurnitureZones"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 0)
+
+[node name="ApartmentCameraController" type="Node3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 8, 6, 8)
+script = ExtResource("2_camera_controller")
+
+[node name="Camera3D" type="Camera3D" parent="ApartmentCameraController"]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="EscMenu" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("3_esc_menu")
+
+[node name="InfoPanel" type="Panel" parent="UI"]
+modulate = Color(1, 1, 1, 0.9)
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -160.0
+offset_right = 500.0
+offset_bottom = -20.0
+
+[node name="InfoContainer" type="VBoxContainer" parent="UI/InfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ApartmentTitle" type="Label" parent="UI/InfoPanel/InfoContainer"]
+layout_mode = 2
+text = "ESC - Menu | WASD - Move | Mouse - Look"
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_default")

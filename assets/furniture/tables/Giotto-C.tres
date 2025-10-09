@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" load_steps=3 format=3 uid="uid://dtvxa4nxxqywn"]
+
+[ext_resource type="Texture2D" uid="uid://b62f0svm3w8bo" path="res://assets/furniture/tables/giotto-c_coffee_table_0.png" id="1_t7atj"]
+[ext_resource type="Texture2D" uid="uid://cmn8aia5b0peh" path="res://assets/furniture/tables/giotto-c_coffee_table_1.png" id="2_gd050"]
+
+[resource]
+resource_name = "Giotto-C"
+cull_mode = 2
+albedo_texture = ExtResource("1_t7atj")
+metallic = 1.0
+metallic_texture = ExtResource("2_gd050")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("2_gd050")
+roughness_texture_channel = 1
+ao_enabled = true
+ao_texture = ExtResource("2_gd050")

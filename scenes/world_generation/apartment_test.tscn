@@ -1,0 +1,49 @@
+[gd_scene load_steps=3 format=3 uid="uid://bpr4l8md5y6kq"]
+
+[ext_resource type="Script" path="res://scripts/cameras/apartment_camera_controller.gd" id="2_camera_script"]
+
+[node name="ApartmentTestScene" type="Node3D"]
+
+[node name="ApartmentGenerator" type="Node3D" parent="."]
+script = ExtResource("1_apartment_gen")
+apartment_type = "one_bedroom_regular"
+luxury_level = "standard"
+
+[node name="CameraController" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.766044, 0.642788, 0, -0.642788, 0.766044, 5, 3, 5)
+script = ExtResource("2_camera_script")
+
+[node name="Camera3D" type="Camera3D" parent="CameraController"]
+fov = 75.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 5, 0)
+light_energy = 0.8
+shadow_enabled = true
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Instructions" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -120.0
+offset_right = 400.0
+offset_bottom = -20.0
+text = "WASD - Move Camera
+Mouse - Look Around
+Shift - Move Faster
+Ctrl - Move Slower
+Space - Move Up
+C - Move Down
+R - Regenerate Apartment
+L - Toggle Room Labels
+ESC - Toggle Mouse"
+modulate = Color(1, 1, 1, 0.8)

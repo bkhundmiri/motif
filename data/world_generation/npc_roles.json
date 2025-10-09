@@ -1,0 +1,267 @@
+{
+  "npc_roles": {
+    "residential_roles": {
+      "tenant": {
+        "description": "Lives in apartment or house",
+        "age_ranges": ["young_adult", "adult", "middle_aged", "senior"],
+        "employment_status": ["employed", "unemployed", "retired", "student"],
+        "daily_routines": {
+          "employed": {
+            "weekday": ["wake_up", "commute_to_work", "work_day", "commute_home", "evening_activities", "sleep"],
+            "weekend": ["sleep_in", "household_tasks", "leisure_activities", "social_time", "sleep"]
+          },
+          "unemployed": {
+            "daily": ["wake_up", "job_search", "errands", "leisure_activities", "sleep"]
+          },
+          "retired": {
+            "daily": ["wake_up", "exercise", "social_activities", "hobbies", "sleep"]
+          },
+          "student": {
+            "weekday": ["wake_up", "attend_classes", "study", "part_time_work_maybe", "sleep"],
+            "weekend": ["sleep_in", "study", "social_activities", "sleep"]
+          }
+        },
+        "interaction_patterns": {
+          "neighbors": "occasional_greetings",
+          "building_staff": "regular_interaction",
+          "local_businesses": "frequent_customer"
+        }
+      }
+    },
+    "commercial_roles": {
+      "restaurant_chef": {
+        "workplace": "restaurant_kitchen",
+        "schedule": {"start": "10:00", "end": "22:00"},
+        "skills": ["cooking", "food_preparation", "kitchen_management"],
+        "daily_tasks": ["prep_ingredients", "cook_orders", "manage_kitchen_staff", "inventory"],
+        "interaction_patterns": {
+          "customers": "minimal_direct",
+          "servers": "frequent_coordination",
+          "management": "regular_reporting"
+        }
+      },
+      "restaurant_server": {
+        "workplace": "restaurant_dining_room",
+        "schedule": {"start": "11:00", "end": "23:00"},
+        "skills": ["customer_service", "order_taking", "multitasking"],
+        "daily_tasks": ["greet_customers", "take_orders", "serve_food", "process_payments"],
+        "interaction_patterns": {
+          "customers": "high_frequency",
+          "kitchen_staff": "regular_coordination",
+          "management": "shift_reporting"
+        }
+      },
+      "retail_manager": {
+        "workplace": "retail_store",
+        "schedule": {"start": "08:00", "end": "18:00"},
+        "skills": ["leadership", "inventory_management", "customer_service"],
+        "daily_tasks": ["open_store", "manage_staff", "handle_complaints", "close_store"],
+        "interaction_patterns": {
+          "customers": "problem_resolution",
+          "staff": "constant_supervision",
+          "vendors": "business_meetings"
+        }
+      },
+      "sales_associate": {
+        "workplace": "retail_store",
+        "schedule": {"start": "09:00", "end": "17:00"},
+        "skills": ["customer_service", "product_knowledge", "sales"],
+        "daily_tasks": ["assist_customers", "stock_shelves", "operate_register", "maintain_displays"],
+        "interaction_patterns": {
+          "customers": "frequent_assistance",
+          "manager": "regular_check_ins",
+          "coworkers": "team_coordination"
+        }
+      }
+    },
+    "office_roles": {
+      "executive": {
+        "workplace": "large_office_private_office",
+        "schedule": {"start": "08:00", "end": "18:00"},
+        "skills": ["leadership", "strategic_planning", "decision_making"],
+        "daily_tasks": ["meetings", "strategic_planning", "decision_making", "team_leadership"],
+        "interaction_patterns": {
+          "staff": "delegation_oversight",
+          "clients": "high_level_meetings",
+          "other_executives": "strategic_discussions"
+        }
+      },
+      "manager": {
+        "workplace": "medium_office_private_office",
+        "schedule": {"start": "08:30", "end": "17:30"},
+        "skills": ["team_management", "project_coordination", "communication"],
+        "daily_tasks": ["team_meetings", "project_oversight", "report_preparation", "client_communication"],
+        "interaction_patterns": {
+          "team_members": "daily_supervision",
+          "executives": "regular_reporting",
+          "clients": "project_updates"
+        }
+      },
+      "office_worker": {
+        "workplace": "office_open_workspace",
+        "schedule": {"start": "09:00", "end": "17:00"},
+        "skills": ["computer_proficiency", "communication", "specialized_field_knowledge"],
+        "daily_tasks": ["computer_work", "phone_calls", "meetings", "project_tasks"],
+        "interaction_patterns": {
+          "colleagues": "collaborative_work",
+          "manager": "regular_check_ins",
+          "clients": "occasional_contact"
+        }
+      },
+      "receptionist": {
+        "workplace": "office_reception_area",
+        "schedule": {"start": "08:00", "end": "17:00"},
+        "skills": ["customer_service", "phone_etiquette", "organization"],
+        "daily_tasks": ["answer_phones", "greet_visitors", "schedule_appointments", "administrative_tasks"],
+        "interaction_patterns": {
+          "visitors": "first_contact",
+          "all_staff": "communication_hub",
+          "delivery_people": "package_handling"
+        }
+      }
+    },
+    "service_roles": {
+      "building_concierge": {
+        "workplace": "apartment_tower_lobby",
+        "schedule": {"start": "06:00", "end": "22:00", "shifts": "rotating"},
+        "skills": ["customer_service", "security_awareness", "local_knowledge"],
+        "daily_tasks": ["greet_residents", "accept_packages", "provide_information", "maintain_security"],
+        "interaction_patterns": {
+          "residents": "daily_service",
+          "visitors": "screening_assistance",
+          "delivery_services": "package_coordination"
+        }
+      },
+      "maintenance_worker": {
+        "workplace": "building_maintenance_areas",
+        "schedule": {"start": "07:00", "end": "15:00"},
+        "skills": ["repair", "cleaning", "equipment_operation"],
+        "daily_tasks": ["routine_maintenance", "repair_requests", "cleaning", "equipment_checks"],
+        "interaction_patterns": {
+          "residents": "service_calls",
+          "building_management": "work_orders",
+          "vendors": "coordination"
+        }
+      },
+      "security_guard": {
+        "workplace": "building_security_desk",
+        "schedule": {"24_hour_shifts": "rotating"},
+        "skills": ["security_protocols", "observation", "emergency_response"],
+        "daily_tasks": ["monitor_premises", "check_credentials", "patrol_building", "incident_response"],
+        "interaction_patterns": {
+          "residents": "security_services",
+          "visitors": "access_control",
+          "emergency_services": "coordination"
+        }
+      }
+    }
+  },
+  "npc_demographics": {
+    "age_distributions": {
+      "young_adult": {"age_range": "22-35", "percentage": 0.35, "common_roles": ["office_worker", "server", "sales_associate", "tenant"]},
+      "adult": {"age_range": "36-50", "percentage": 0.30, "common_roles": ["manager", "chef", "retail_manager", "tenant"]},
+      "middle_aged": {"age_range": "51-65", "percentage": 0.25, "common_roles": ["executive", "senior_worker", "building_staff", "tenant"]},
+      "senior": {"age_range": "65+", "percentage": 0.10, "common_roles": ["retired_tenant", "part_time_worker"]}
+    },
+    "socioeconomic_levels": {
+      "working_class": {
+        "percentage": 0.40,
+        "income_range": {"min": 30000, "max": 50000},
+        "housing_preferences": ["studio", "one_bedroom", "small_house"],
+        "employment": ["service_jobs", "retail", "maintenance"]
+      },
+      "middle_class": {
+        "percentage": 0.45,
+        "income_range": {"min": 50000, "max": 100000},
+        "housing_preferences": ["one_bedroom", "two_bedroom", "medium_house"],
+        "employment": ["office_worker", "manager", "professional_services"]
+      },
+      "upper_class": {
+        "percentage": 0.15,
+        "income_range": {"min": 100000, "max": 300000},
+        "housing_preferences": ["two_bedroom_luxury", "penthouse", "large_house"],
+        "employment": ["executive", "business_owner", "high_level_professional"]
+      }
+    }
+  },
+  "daily_routine_templates": {
+    "office_worker_weekday": {
+      "06:30": {"activity": "wake_up", "location": "home_bedroom"},
+      "07:00": {"activity": "personal_care", "location": "home_bathroom"},
+      "07:30": {"activity": "breakfast", "location": "home_kitchen"},
+      "08:00": {"activity": "commute", "location": "transit_walking"},
+      "09:00": {"activity": "work", "location": "office_workspace"},
+      "12:00": {"activity": "lunch", "location": "nearby_restaurant"},
+      "13:00": {"activity": "work", "location": "office_workspace"},
+      "17:00": {"activity": "commute", "location": "transit_walking"},
+      "18:00": {"activity": "errands", "location": "local_shops"},
+      "19:00": {"activity": "dinner", "location": "home_kitchen"},
+      "20:00": {"activity": "leisure", "location": "home_living_room"},
+      "22:30": {"activity": "sleep", "location": "home_bedroom"}
+    },
+    "restaurant_worker_weekday": {
+      "09:00": {"activity": "wake_up", "location": "home_bedroom"},
+      "10:00": {"activity": "personal_care", "location": "home_bathroom"},
+      "10:30": {"activity": "commute", "location": "walking"},
+      "11:00": {"activity": "work_prep", "location": "restaurant_kitchen"},
+      "12:00": {"activity": "work_service", "location": "restaurant"},
+      "15:00": {"activity": "break", "location": "restaurant_break_area"},
+      "15:30": {"activity": "work_service", "location": "restaurant"},
+      "22:00": {"activity": "cleanup", "location": "restaurant"},
+      "23:00": {"activity": "commute", "location": "walking"},
+      "23:30": {"activity": "unwind", "location": "home_living_room"},
+      "01:00": {"activity": "sleep", "location": "home_bedroom"}
+    },
+    "retiree_daily": {
+      "07:30": {"activity": "wake_up", "location": "home_bedroom"},
+      "08:00": {"activity": "personal_care", "location": "home_bathroom"},
+      "08:30": {"activity": "breakfast", "location": "home_kitchen"},
+      "09:30": {"activity": "exercise", "location": "neighborhood_park"},
+      "10:30": {"activity": "social_time", "location": "community_center"},
+      "12:00": {"activity": "lunch", "location": "home_kitchen"},
+      "13:00": {"activity": "hobbies", "location": "home_living_room"},
+      "15:00": {"activity": "errands", "location": "local_shops"},
+      "16:30": {"activity": "social_visit", "location": "neighbor_home"},
+      "18:00": {"activity": "dinner", "location": "home_kitchen"},
+      "19:00": {"activity": "leisure", "location": "home_living_room"},
+      "21:30": {"activity": "sleep", "location": "home_bedroom"}
+    }
+  },
+  "interaction_systems": {
+    "relationship_types": {
+      "neighbor": {
+        "interaction_frequency": "occasional",
+        "interaction_types": ["greeting", "small_talk", "favor_asking"],
+        "relationship_development": "slow_gradual"
+      },
+      "coworker": {
+        "interaction_frequency": "daily",
+        "interaction_types": ["work_coordination", "professional_discussion", "casual_conversation"],
+        "relationship_development": "work_based"
+      },
+      "service_provider": {
+        "interaction_frequency": "as_needed",
+        "interaction_types": ["service_request", "payment", "courtesy_greeting"],
+        "relationship_development": "professional_familiarity"
+      },
+      "customer": {
+        "interaction_frequency": "varied",
+        "interaction_types": ["service_interaction", "purchase_transaction", "complaint_resolution"],
+        "relationship_development": "repeat_customer_recognition"
+      }
+    },
+    "social_dynamics": {
+      "workplace_hierarchy": {
+        "executive_to_manager": "directive_oversight",
+        "manager_to_worker": "task_assignment_guidance",
+        "worker_to_worker": "collaborative_peer",
+        "all_to_receptionist": "coordination_point"
+      },
+      "residential_community": {
+        "long_term_residents": "established_social_networks",
+        "new_residents": "gradual_integration",
+        "building_staff": "service_professional_relationships"
+      }
+    }
+  }
+}

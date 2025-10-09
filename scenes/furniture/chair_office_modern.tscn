@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://duex5ngff3ua3"]
+
+[ext_resource type="Script" uid="uid://bllh7u4cfcxq8" path="res://scripts/furniture/chair.gd" id="1_chair_script"]
+[ext_resource type="PackedScene" uid="uid://bdjvutltdjfua" path="res://assets/furniture/chairs/office_chair_modern.glb" id="1_ycekh"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(0.6, 1.0, 0.6)
+
+[node name="ChairOfficeModern" type="StaticBody3D"]
+script = ExtResource("1_chair_script")
+furniture_id = "office_chair"
+furniture_type = "chair"
+placement_rules = Array[String](["near_table", "center_room"])
+item_size = Vector3(0.6, 1.0, 0.6)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_1")
+
+[node name="office_chair_modern" parent="." instance=ExtResource("1_ycekh")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0)

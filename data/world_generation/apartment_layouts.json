@@ -1,0 +1,702 @@
+{
+  "apartment_layouts": {
+    "studio": {
+      "id": "apt_studio_001",
+      "total_area_sqm": 60,
+      "overall_dimensions": {"width": 10.0, "depth": 8.0},
+      "room_configuration": {
+        "main_room": {
+          "functions": ["living", "sleeping"],
+          "dimensions": {"width": 6.0, "depth": 6.0},
+          "position": {"x": 2.0, "z": 0.0},
+          "furniture_zones": [
+            {"type": "sleeping", "furniture": ["single_bed"], "position": {"x": 3.5, "z": -2.0}},
+            {"type": "living", "furniture": ["small_table", "chair"], "position": {"x": 3.5, "z": 2.0}},
+            {"type": "work_area", "furniture": ["desk", "chair"], "position": {"x": 1.0, "z": 0.0}}
+          ]
+        },
+        "kitchenette": {
+          "type": "galley_kitchen",
+          "dimensions": {"width": 3.0, "depth": 3.0},
+          "position": {"x": -3.0, "z": 2.0},
+          "required_appliances": ["mini_fridge", "cooktop", "sink_basic", "microwave"],
+          "optional_furniture": ["small_storage"],
+          "features": ["breakfast_bar", "upper_cabinets"]
+        },
+        "bathroom": {
+          "type": "compact_bath",
+          "dimensions": {"width": 3.0, "depth": 2.5},
+          "position": {"x": -3.0, "z": -2.0},
+          "required_fixtures": ["toilet", "sink_basic", "shower"],
+          "luxury_upgrades": []
+        },
+        "entrance": {
+          "type": "entry_area",
+          "dimensions": {"width": 2.0, "depth": 1.5},
+          "position": {"x": -3.5, "z": 0.0},
+          "features": ["entry_door", "coat_hooks"],
+          "door_position": {"x": -5.0, "z": 0.0}
+        }
+      },
+      "layout_variants": [
+        {"id": "studio_a", "description": "Kitchen along one wall, bed in corner"},
+        {"id": "studio_b", "description": "L-shaped kitchen, bed against opposite wall"},
+        {"id": "studio_c", "description": "Central kitchen island, bed in alcove"}
+      ],
+      "target_demographics": ["young_professionals", "students", "artists"],
+      "rent_range": {"min": 800, "max": 1200}
+    },
+    "one_bedroom": {
+      "id": "apt_1br_001",
+      "total_area_sqm": 55,
+      "room_configuration": {
+        "living_room": {
+          "min_size": {"width": 3.5, "depth": 4.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["sofa_modern", "coffee_table"]},
+            {"type": "entertainment", "furniture": ["tv_large", "bookshelf"]}
+          ]
+        },
+        "bedroom": {
+          "min_size": {"width": 3.0, "depth": 3.5},
+          "required_furniture": ["double_bed", "wardrobe"],
+          "optional_furniture": ["bedside_table", "dresser"]
+        },
+        "kitchen": {
+          "type": "separate",
+          "min_size": {"width": 2.5, "depth": 3.0},
+          "required_appliances": ["refrigerator", "stove", "sink_basic", "dishwasher"],
+          "counter_space": "adequate"
+        },
+        "bathroom": {
+          "type": "full_bath",
+          "min_size": {"width": 2.0, "depth": 2.5},
+          "required_fixtures": ["toilet", "sink_basic", "bathtub"],
+          "luxury_upgrades": ["separate_shower"]
+        }
+      },
+      "layout_variants": [
+        {"id": "1br_a", "description": "Linear layout with bedroom at end"},
+        {"id": "1br_b", "description": "L-shaped with bedroom off living room"},
+        {"id": "1br_c", "description": "Central hallway design"}
+      ],
+      "target_demographics": ["young_professionals", "couples", "single_parents"],
+      "rent_range": {"min": 1200, "max": 1800}
+    },
+    "two_bedroom_one_bath": {
+      "id": "apt_2br1ba_001",
+      "total_area_sqm": 75,
+      "room_configuration": {
+        "living_room": {
+          "min_size": {"width": 4.0, "depth": 5.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["sofa_modern", "coffee_table", "armchair"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center"]},
+            {"type": "dining", "furniture": ["dining_table_large"]}
+          ]
+        },
+        "master_bedroom": {
+          "min_size": {"width": 3.5, "depth": 4.0},
+          "required_furniture": ["double_bed", "wardrobe", "dresser"],
+          "luxury_upgrades": ["king_bed", "walk_in_closet"]
+        },
+        "second_bedroom": {
+          "min_size": {"width": 3.0, "depth": 3.5},
+          "required_furniture": ["single_bed", "wardrobe"],
+          "possible_uses": ["bedroom", "home_office", "nursery"]
+        },
+        "kitchen": {
+          "type": "separate",
+          "min_size": {"width": 3.0, "depth": 3.5},
+          "required_appliances": ["refrigerator", "stove", "sink_basic", "dishwasher"],
+          "counter_space": "generous"
+        },
+        "bathroom": {
+          "type": "full_bath",
+          "min_size": {"width": 2.5, "depth": 2.5},
+          "required_fixtures": ["toilet", "sink_basic", "bathtub"],
+          "luxury_upgrades": ["double_vanity", "separate_shower"]
+        }
+      },
+      "layout_variants": [
+        {"id": "2br1ba_a", "description": "Bedrooms on same side of unit"},
+        {"id": "2br1ba_b", "description": "Split bedroom layout"},
+        {"id": "2br1ba_c", "description": "Master suite with en-suite potential"}
+      ],
+      "target_demographics": ["families", "roommates", "professionals"],
+      "rent_range": {"min": 1600, "max": 2400}
+    },
+    "two_bedroom_two_bath": {
+      "id": "apt_2br2ba_001",
+      "total_area_sqm": 90,
+      "room_configuration": {
+        "living_room": {
+          "min_size": {"width": 4.5, "depth": 5.5},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["luxury_sectional", "coffee_table"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center"]},
+            {"type": "dining", "furniture": ["dining_table_large"]}
+          ]
+        },
+        "master_bedroom": {
+          "min_size": {"width": 4.0, "depth": 4.5},
+          "required_furniture": ["king_bed", "wardrobe", "dresser"],
+          "luxury_features": ["walk_in_closet", "sitting_area"]
+        },
+        "second_bedroom": {
+          "min_size": {"width": 3.5, "depth": 4.0},
+          "required_furniture": ["double_bed", "wardrobe"],
+          "possible_uses": ["bedroom", "home_office", "guest_room"]
+        },
+        "kitchen": {
+          "type": "separate_large",
+          "min_size": {"width": 3.5, "depth": 4.0},
+          "required_appliances": ["refrigerator", "stove", "sink_basic", "dishwasher"],
+          "luxury_upgrades": ["kitchen_island", "double_oven"],
+          "counter_space": "extensive"
+        },
+        "master_bathroom": {
+          "type": "en_suite",
+          "min_size": {"width": 2.5, "depth": 3.0},
+          "required_fixtures": ["toilet", "double_vanity", "bathtub", "separate_shower"],
+          "luxury_upgrades": ["jetted_tub", "walk_in_shower"]
+        },
+        "guest_bathroom": {
+          "type": "full_bath",
+          "min_size": {"width": 2.0, "depth": 2.5},
+          "required_fixtures": ["toilet", "sink_basic", "shower"],
+          "luxury_upgrades": ["bathtub"]
+        }
+      },
+      "layout_variants": [
+        {"id": "2br2ba_a", "description": "Master suite separated from main living"},
+        {"id": "2br2ba_b", "description": "Split plan with private entries"},
+        {"id": "2br2ba_c", "description": "Open concept with defined zones"}
+      ],
+      "target_demographics": ["families", "professionals", "executive_tenants"],
+      "rent_range": {"min": 2200, "max": 3200}
+    },
+    "penthouse": {
+      "id": "apt_penthouse_001",
+      "total_area_sqm": 150,
+      "room_configuration": {
+        "grand_living": {
+          "min_size": {"width": 6.0, "depth": 8.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["luxury_sectional", "armchairs", "coffee_table"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center"]},
+            {"type": "bar", "furniture": ["bar_counter", "bar_stools"]}
+          ]
+        },
+        "formal_dining": {
+          "min_size": {"width": 4.0, "depth": 5.0},
+          "required_furniture": ["dining_table_large", "dining_chairs", "buffet"],
+          "luxury_features": ["chandelier", "wine_storage"]
+        },
+        "master_suite": {
+          "min_size": {"width": 5.0, "depth": 6.0},
+          "required_furniture": ["king_bed", "luxury_furniture"],
+          "luxury_features": ["sitting_area", "walk_in_closet", "private_balcony"]
+        },
+        "guest_bedroom": {
+          "min_size": {"width": 3.5, "depth": 4.0},
+          "required_furniture": ["double_bed", "wardrobe"],
+          "luxury_upgrades": ["en_suite_bathroom"]
+        },
+        "home_office": {
+          "min_size": {"width": 3.0, "depth": 4.0},
+          "required_furniture": ["executive_desk", "executive_chair", "bookshelf"],
+          "luxury_features": ["built_in_storage", "meeting_area"]
+        },
+        "gourmet_kitchen": {
+          "min_size": {"width": 4.0, "depth": 5.0},
+          "required_appliances": ["luxury_appliances", "kitchen_island"],
+          "luxury_features": ["wine_fridge", "double_oven", "butler_pantry"]
+        },
+        "master_bathroom": {
+          "type": "luxury_spa",
+          "min_size": {"width": 4.0, "depth": 4.0},
+          "required_fixtures": ["luxury_bathtub", "walk_in_shower", "double_vanity"],
+          "luxury_features": ["separate_toilet_room", "heated_floors"]
+        },
+        "powder_room": {
+          "min_size": {"width": 1.5, "depth": 2.0},
+          "required_fixtures": ["toilet", "luxury_sink"],
+          "luxury_features": ["designer_finishes"]
+        },
+        "terrace": {
+          "type": "outdoor_space",
+          "min_size": {"width": 4.0, "depth": 6.0},
+          "features": ["outdoor_furniture", "city_views", "privacy_screens"]
+        }
+      },
+      "layout_variants": [
+        {"id": "penthouse_a", "description": "Corner unit with wrap-around terrace"},
+        {"id": "penthouse_b", "description": "Linear luxury with central grand room"},
+        {"id": "penthouse_c", "description": "Multi-level with private elevator"}
+      ],
+      "target_demographics": ["executives", "wealthy_professionals", "celebrities"],
+      "rent_range": {"min": 5000, "max": 12000}
+    },
+    "studio_open": {
+      "id": "apt_studio_open_002",
+      "total_area_sqm": 52,
+      "overall_dimensions": {"width": 8.0, "depth": 6.5},
+      "room_configuration": {
+        "open_main_area": {
+          "functions": ["living", "sleeping", "dining", "kitchen"],
+          "dimensions": {"width": 8.0, "depth": 4.5},
+          "position": {"x": 0, "z": -1.0},
+          "open_concept": true,
+          "furniture_zones": [
+            {"type": "sleeping", "furniture": ["single_bed"], "position": {"x": -2.5, "z": -2.0}},
+            {"type": "living", "furniture": ["sofa", "coffee_table", "tv_wall_mount"], "position": {"x": -2.5, "z": 0.5}},
+            {"type": "dining", "furniture": ["dining_table_medium", "dining_chairs"], "position": {"x": 0.5, "z": -1.5}},
+            {"type": "kitchen", "furniture": ["kitchen_counter", "bar_stools"], "position": {"x": 2.5, "z": -1.0}}
+          ]
+        },
+        "kitchen_area": {
+          "type": "open_kitchen",
+          "integrated_with": "open_main_area",
+          "dimensions": {"width": 3.7, "depth": 2.5},
+          "position": {"x": 2.15, "z": -1.25},
+          "required_appliances": ["refrigerator", "stove", "sink_modern", "dishwasher"],
+          "features": ["kitchen_island", "pendant_lighting", "breakfast_bar"]
+        },
+        "bathroom": {
+          "type": "full_bath",
+          "dimensions": {"width": 2.0, "depth": 1.5},
+          "position": {"x": -3.0, "z": 2.25},
+          "required_fixtures": ["toilet", "sink_modern", "shower"],
+          "luxury_upgrades": ["rainfall_shower"]
+        },
+        "bedroom": {
+          "type": "separate_bedroom",
+          "dimensions": {"width": 2.4, "depth": 2.2},
+          "position": {"x": 2.3, "z": 2.15},
+          "furniture_zones": [
+            {"type": "sleeping", "furniture": ["single_bed"], "position": {"x": 2.3, "z": 2.0}}
+          ]
+        },
+        "office_nook": {
+          "type": "workspace",
+          "dimensions": {"width": 1.5, "depth": 2.2},
+          "position": {"x": 0.25, "z": 2.15},
+          "furniture_zones": [
+            {"type": "work", "furniture": ["desk", "office_chair"], "position": {"x": 0.25, "z": 2.0}}
+          ]
+        },
+        "entry_area": {
+          "type": "foyer",
+          "dimensions": {"width": 1.5, "depth": 1.3},
+          "position": {"x": -1.25, "z": 2.6},
+          "features": ["entry_door", "coat_storage"]
+        }
+      },
+      "layout_variants": [
+        {"id": "studio_open_a", "description": "Kitchen island defines space separation"},
+        {"id": "studio_open_b", "description": "L-shaped kitchen with breakfast bar"},
+        {"id": "studio_open_c", "description": "Galley kitchen with dining counter"}
+      ],
+      "target_demographics": ["young_professionals", "students", "minimalists"],
+      "rent_range": {"min": 900, "max": 1400}
+    },
+    "one_bedroom_open": {
+      "id": "apt_1br_open_002",
+      "total_area_sqm": 65,
+      "room_configuration": {
+        "living_dining_kitchen": {
+          "functions": ["living", "dining", "kitchen"],
+          "min_size": {"width": 5.0, "depth": 6.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["sofa_modern", "coffee_table"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center"]},
+            {"type": "dining", "furniture": ["dining_table_medium", "dining_chairs"]},
+            {"type": "kitchen", "furniture": ["kitchen_island", "bar_stools"]}
+          ],
+          "open_concept": true
+        },
+        "bedroom": {
+          "min_size": {"width": 3.2, "depth": 3.8},
+          "required_furniture": ["double_bed", "wardrobe"],
+          "optional_furniture": ["bedside_table", "dresser", "reading_chair"]
+        },
+        "kitchen_area": {
+          "type": "open_kitchen",
+          "integrated_with": "living_dining_kitchen",
+          "min_size": {"width": 3.0, "depth": 4.0},
+          "required_appliances": ["refrigerator", "stove", "sink_modern", "dishwasher"],
+          "luxury_features": ["kitchen_island", "pendant_lighting", "quartz_countertops"]
+        },
+        "bathroom": {
+          "type": "full_bath",
+          "min_size": {"width": 2.2, "depth": 2.8},
+          "required_fixtures": ["toilet", "sink_modern", "bathtub"],
+          "luxury_upgrades": ["separate_shower", "double_vanity"]
+        }
+      },
+      "layout_variants": [
+        {"id": "1br_open_a", "description": "Kitchen island as room divider"},
+        {"id": "1br_open_b", "description": "Peninsula kitchen with breakfast bar"},
+        {"id": "1br_open_c", "description": "Galley kitchen opening to living space"}
+      ],
+      "target_demographics": ["young_professionals", "couples", "entertainers"],
+      "rent_range": {"min": 1400, "max": 2100}
+    },
+    "two_bedroom_one_bath_open": {
+      "id": "apt_2br1ba_open_002",
+      "total_area_sqm": 85,
+      "room_configuration": {
+        "living_dining_kitchen": {
+          "functions": ["living", "dining", "kitchen"],
+          "min_size": {"width": 6.0, "depth": 6.5},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["sectional_sofa", "coffee_table", "accent_chairs"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center"]},
+            {"type": "dining", "furniture": ["dining_table_large", "dining_chairs"]},
+            {"type": "kitchen", "furniture": ["kitchen_island", "bar_stools"]}
+          ],
+          "open_concept": true
+        },
+        "master_bedroom": {
+          "min_size": {"width": 3.8, "depth": 4.2},
+          "required_furniture": ["double_bed", "wardrobe", "dresser"],
+          "luxury_upgrades": ["king_bed", "walk_in_closet", "reading_nook"]
+        },
+        "second_bedroom": {
+          "min_size": {"width": 3.2, "depth": 3.8},
+          "required_furniture": ["single_bed", "wardrobe"],
+          "possible_uses": ["bedroom", "home_office", "nursery", "guest_room"]
+        },
+        "kitchen_area": {
+          "type": "open_kitchen",
+          "integrated_with": "living_dining_kitchen",
+          "min_size": {"width": 4.0, "depth": 4.5},
+          "required_appliances": ["refrigerator", "stove", "sink_modern", "dishwasher"],
+          "luxury_features": ["kitchen_island", "pendant_lighting", "quartz_countertops", "wine_storage"]
+        },
+        "bathroom": {
+          "type": "full_bath",
+          "min_size": {"width": 2.8, "depth": 3.0},
+          "required_fixtures": ["toilet", "sink_modern", "bathtub"],
+          "luxury_upgrades": ["double_vanity", "separate_shower", "heated_floors"]
+        }
+      },
+      "layout_variants": [
+        {"id": "2br1ba_open_a", "description": "Large kitchen island as centerpiece"},
+        {"id": "2br1ba_open_b", "description": "L-shaped kitchen with dining peninsula"},
+        {"id": "2br1ba_open_c", "description": "Open galley kitchen with breakfast bar"}
+      ],
+      "target_demographics": ["families", "roommates", "entertainers"],
+      "rent_range": {"min": 1800, "max": 2700}
+    },
+    "two_bedroom_one_bath_luxury": {
+      "id": "apt_2br1ba_lux_003",
+      "total_area_sqm": 95,
+      "room_configuration": {
+        "living_room": {
+          "min_size": {"width": 5.0, "depth": 6.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["luxury_sectional", "coffee_table", "accent_chairs"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center", "sound_system"]},
+            {"type": "dining", "furniture": ["dining_table_large", "luxury_dining_chairs"]}
+          ],
+          "luxury_features": ["crown_molding", "hardwood_floors", "floor_to_ceiling_windows"]
+        },
+        "master_bedroom": {
+          "min_size": {"width": 4.5, "depth": 5.0},
+          "required_furniture": ["king_bed", "luxury_wardrobe", "dresser"],
+          "luxury_features": ["walk_in_closet", "sitting_area", "private_balcony", "smart_lighting"]
+        },
+        "second_bedroom": {
+          "min_size": {"width": 3.5, "depth": 4.0},
+          "required_furniture": ["double_bed", "wardrobe"],
+          "luxury_upgrades": ["built_in_desk", "custom_storage"],
+          "possible_uses": ["bedroom", "luxury_home_office", "guest_suite"]
+        },
+        "gourmet_kitchen": {
+          "type": "luxury_separate",
+          "min_size": {"width": 3.8, "depth": 4.5},
+          "required_appliances": ["stainless_steel_refrigerator", "gas_range", "luxury_sink", "dishwasher"],
+          "luxury_features": ["granite_countertops", "custom_cabinetry", "wine_storage", "kitchen_island"],
+          "counter_space": "extensive"
+        },
+        "luxury_bathroom": {
+          "type": "spa_bath",
+          "min_size": {"width": 3.0, "depth": 3.2},
+          "required_fixtures": ["toilet", "double_vanity", "luxury_bathtub"],
+          "luxury_features": ["separate_shower", "heated_floors", "premium_fixtures", "marble_finishes"]
+        }
+      },
+      "layout_variants": [
+        {"id": "2br1ba_lux_a", "description": "Master suite with luxury amenities"},
+        {"id": "2br1ba_lux_b", "description": "Gourmet kitchen with butler's pantry"},
+        {"id": "2br1ba_lux_c", "description": "Split bedroom layout with privacy"}
+      ],
+      "target_demographics": ["affluent_families", "luxury_renters", "executives"],
+      "rent_range": {"min": 2400, "max": 3600}
+    },
+    "two_bedroom_two_bath_open": {
+      "id": "apt_2br2ba_open_002",
+      "total_area_sqm": 100,
+      "room_configuration": {
+        "grand_living_dining_kitchen": {
+          "functions": ["living", "dining", "kitchen"],
+          "min_size": {"width": 7.0, "depth": 7.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["luxury_sectional", "coffee_table", "accent_chairs"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center"]},
+            {"type": "dining", "furniture": ["dining_table_large", "dining_chairs"]},
+            {"type": "kitchen", "furniture": ["large_kitchen_island", "bar_stools"]}
+          ],
+          "open_concept": true,
+          "luxury_features": ["vaulted_ceilings", "floor_to_ceiling_windows"]
+        },
+        "master_bedroom": {
+          "min_size": {"width": 4.2, "depth": 5.0},
+          "required_furniture": ["king_bed", "wardrobe", "dresser"],
+          "luxury_features": ["walk_in_closet", "sitting_area", "private_balcony"]
+        },
+        "second_bedroom": {
+          "min_size": {"width": 3.8, "depth": 4.2},
+          "required_furniture": ["double_bed", "wardrobe"],
+          "possible_uses": ["bedroom", "home_office", "guest_room"]
+        },
+        "kitchen_area": {
+          "type": "open_gourmet",
+          "integrated_with": "grand_living_dining_kitchen",
+          "min_size": {"width": 5.0, "depth": 5.0},
+          "required_appliances": ["stainless_steel_refrigerator", "gas_range", "luxury_sink", "dishwasher"],
+          "luxury_features": ["large_kitchen_island", "pendant_lighting", "quartz_countertops", "wine_storage", "pantry"]
+        },
+        "master_bathroom": {
+          "type": "en_suite",
+          "min_size": {"width": 3.0, "depth": 3.5},
+          "required_fixtures": ["toilet", "double_vanity", "bathtub", "separate_shower"],
+          "luxury_upgrades": ["jetted_tub", "walk_in_shower", "heated_floors"]
+        },
+        "guest_bathroom": {
+          "type": "full_bath",
+          "min_size": {"width": 2.2, "depth": 2.8},
+          "required_fixtures": ["toilet", "sink_modern", "shower"],
+          "luxury_upgrades": ["bathtub", "premium_fixtures"]
+        }
+      },
+      "layout_variants": [
+        {"id": "2br2ba_open_a", "description": "Massive kitchen island as focal point"},
+        {"id": "2br2ba_open_b", "description": "U-shaped kitchen with breakfast bar"},
+        {"id": "2br2ba_open_c", "description": "Chef's kitchen with entertaining space"}
+      ],
+      "target_demographics": ["families", "entertainers", "luxury_renters"],
+      "rent_range": {"min": 2600, "max": 3800}
+    },
+    "two_bedroom_two_bath_luxury": {
+      "id": "apt_2br2ba_lux_003",
+      "total_area_sqm": 120,
+      "room_configuration": {
+        "grand_living": {
+          "min_size": {"width": 6.0, "depth": 7.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["luxury_sectional", "accent_chairs", "coffee_table"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center", "sound_system"]},
+            {"type": "bar", "furniture": ["wet_bar", "bar_stools"]}
+          ],
+          "luxury_features": ["crown_molding", "coffered_ceilings", "premium_hardwood"]
+        },
+        "formal_dining": {
+          "min_size": {"width": 4.5, "depth": 5.0},
+          "required_furniture": ["luxury_dining_table", "upholstered_chairs", "buffet"],
+          "luxury_features": ["chandelier", "wine_storage", "built_in_china_cabinet"]
+        },
+        "master_suite": {
+          "min_size": {"width": 5.0, "depth": 6.0},
+          "required_furniture": ["king_bed", "luxury_furniture"],
+          "luxury_features": ["sitting_area", "walk_in_closet", "private_balcony", "fireplace"]
+        },
+        "second_bedroom": {
+          "min_size": {"width": 4.0, "depth": 4.5},
+          "required_furniture": ["double_bed", "wardrobe"],
+          "luxury_upgrades": ["built_in_desk", "custom_storage", "en_suite_option"],
+          "possible_uses": ["bedroom", "luxury_home_office", "guest_suite"]
+        },
+        "gourmet_kitchen": {
+          "type": "luxury_separate",
+          "min_size": {"width": 4.5, "depth": 5.5},
+          "required_appliances": ["luxury_appliances", "kitchen_island"],
+          "luxury_features": ["granite_countertops", "custom_cabinetry", "wine_fridge", "double_oven", "butler_pantry"]
+        },
+        "master_spa_bathroom": {
+          "type": "luxury_spa",
+          "min_size": {"width": 4.0, "depth": 4.5},
+          "required_fixtures": ["luxury_bathtub", "walk_in_shower", "double_vanity"],
+          "luxury_features": ["separate_toilet_room", "heated_floors", "steam_shower", "marble_finishes"]
+        },
+        "guest_bathroom": {
+          "type": "luxury_powder",
+          "min_size": {"width": 2.5, "depth": 3.0},
+          "required_fixtures": ["toilet", "luxury_sink", "shower"],
+          "luxury_features": ["premium_fixtures", "designer_finishes", "bathtub_option"]
+        }
+      },
+      "layout_variants": [
+        {"id": "2br2ba_lux_a", "description": "Master suite with spa bathroom"},
+        {"id": "2br2ba_lux_b", "description": "Gourmet kitchen with butler's pantry"},
+        {"id": "2br2ba_lux_c", "description": "Formal dining with wine storage"}
+      ],
+      "target_demographics": ["affluent_families", "executives", "luxury_renters"],
+      "rent_range": {"min": 3200, "max": 4800}
+    },
+    "penthouse_open": {
+      "id": "apt_penthouse_open_002",
+      "total_area_sqm": 180,
+      "room_configuration": {
+        "grand_open_living": {
+          "functions": ["living", "dining", "kitchen", "entertainment"],
+          "min_size": {"width": 10.0, "depth": 10.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["luxury_sectional", "armchairs", "coffee_table"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center", "sound_system"]},
+            {"type": "dining", "furniture": ["dining_table_large", "luxury_chairs"]},
+            {"type": "kitchen", "furniture": ["massive_kitchen_island", "bar_stools"]},
+            {"type": "bar", "furniture": ["wet_bar", "wine_storage"]}
+          ],
+          "open_concept": true,
+          "luxury_features": ["soaring_ceilings", "floor_to_ceiling_windows", "panoramic_views"]
+        },
+        "master_suite": {
+          "min_size": {"width": 6.0, "depth": 7.0},
+          "required_furniture": ["king_bed", "luxury_furniture"],
+          "luxury_features": ["sitting_area", "walk_in_closet", "private_terrace", "fireplace", "smart_controls"]
+        },
+        "guest_bedroom": {
+          "min_size": {"width": 4.0, "depth": 4.5},
+          "required_furniture": ["double_bed", "wardrobe"],
+          "luxury_upgrades": ["en_suite_bathroom", "private_balcony"]
+        },
+        "home_office": {
+          "min_size": {"width": 3.5, "depth": 4.5},
+          "required_furniture": ["executive_desk", "executive_chair", "bookshelf"],
+          "luxury_features": ["built_in_storage", "meeting_area", "city_views"]
+        },
+        "open_gourmet_kitchen": {
+          "type": "chef_kitchen",
+          "integrated_with": "grand_open_living",
+          "min_size": {"width": 6.0, "depth": 6.0},
+          "required_appliances": ["luxury_appliances", "massive_kitchen_island"],
+          "luxury_features": ["wine_fridge", "double_oven", "butler_pantry", "professional_range", "custom_cabinetry"]
+        },
+        "master_spa_bathroom": {
+          "type": "luxury_spa",
+          "min_size": {"width": 5.0, "depth": 5.0},
+          "required_fixtures": ["luxury_bathtub", "walk_in_shower", "double_vanity"],
+          "luxury_features": ["separate_toilet_room", "heated_floors", "steam_room", "marble_everything"]
+        },
+        "powder_room": {
+          "min_size": {"width": 1.8, "depth": 2.2},
+          "required_fixtures": ["toilet", "luxury_sink"],
+          "luxury_features": ["designer_finishes", "premium_fixtures"]
+        },
+        "grand_terrace": {
+          "type": "outdoor_space",
+          "min_size": {"width": 6.0, "depth": 8.0},
+          "features": ["outdoor_kitchen", "seating_areas", "panoramic_views", "privacy_screens", "outdoor_fireplace"]
+        }
+      },
+      "layout_variants": [
+        {"id": "penthouse_open_a", "description": "Massive open space with kitchen island centerpiece"},
+        {"id": "penthouse_open_b", "description": "Chef's kitchen with entertaining bar"},
+        {"id": "penthouse_open_c", "description": "360-degree views with central kitchen"}
+      ],
+      "target_demographics": ["ultra_wealthy", "celebrities", "entertainers"],
+      "rent_range": {"min": 6000, "max": 15000}
+    },
+    "penthouse_luxury": {
+      "id": "apt_penthouse_lux_003",
+      "total_area_sqm": 200,
+      "room_configuration": {
+        "grand_living": {
+          "min_size": {"width": 8.0, "depth": 10.0},
+          "furniture_zones": [
+            {"type": "seating", "furniture": ["custom_sectional", "designer_chairs", "luxury_coffee_table"]},
+            {"type": "entertainment", "furniture": ["tv_large", "entertainment_center", "sound_system"]},
+            {"type": "bar", "furniture": ["custom_bar", "bar_stools", "wine_cellar"]}
+          ],
+          "luxury_features": ["custom_millwork", "coffered_ceilings", "imported_marble", "smart_home_integration"]
+        },
+        "formal_dining": {
+          "min_size": {"width": 5.0, "depth": 6.0},
+          "required_furniture": ["custom_dining_table", "luxury_chairs", "sideboard"],
+          "luxury_features": ["crystal_chandelier", "wine_cellar", "butler_service_area"]
+        },
+        "master_suite": {
+          "min_size": {"width": 7.0, "depth": 8.0},
+          "required_furniture": ["custom_king_bed", "luxury_seating"],
+          "luxury_features": ["sitting_room", "walk_in_closet", "private_terrace", "fireplace", "smart_controls", "mini_bar"]
+        },
+        "guest_suite": {
+          "min_size": {"width": 4.5, "depth": 5.0},
+          "required_furniture": ["double_bed", "seating_area"],
+          "luxury_features": ["en_suite_bathroom", "private_balcony", "walk_in_closet"]
+        },
+        "executive_office": {
+          "min_size": {"width": 4.0, "depth": 5.0},
+          "required_furniture": ["executive_desk", "conference_table", "built_in_storage"],
+          "luxury_features": ["library_wall", "fireplace", "private_entrance", "city_views"]
+        },
+        "chef_kitchen": {
+          "type": "professional_grade",
+          "min_size": {"width": 5.0, "depth": 6.0},
+          "required_appliances": ["professional_appliances", "custom_island"],
+          "luxury_features": ["wine_cellar", "butler_pantry", "chef_prep_area", "custom_cabinetry", "imported_stone"]
+        },
+        "master_spa_complex": {
+          "type": "private_spa",
+          "min_size": {"width": 6.0, "depth": 6.0},
+          "required_fixtures": ["luxury_soaking_tub", "steam_shower", "double_vanity"],
+          "luxury_features": ["sauna", "heated_floors", "massage_area", "private_toilet_suite", "marble_everything"]
+        },
+        "guest_bathroom": {
+          "type": "luxury_powder",
+          "min_size": {"width": 2.0, "depth": 2.5},
+          "required_fixtures": ["toilet", "luxury_sink"],
+          "luxury_features": ["designer_finishes", "premium_fixtures", "artwork_display"]
+        },
+        "private_terrace": {
+          "type": "luxury_outdoor",
+          "min_size": {"width": 8.0, "depth": 10.0},
+          "features": ["outdoor_kitchen", "dining_area", "lounge_area", "hot_tub", "panoramic_views", "privacy_landscaping"]
+        },
+        "service_areas": {
+          "min_size": {"width": 3.0, "depth": 4.0},
+          "features": ["laundry_room", "storage", "service_entrance", "staff_facilities"]
+        }
+      },
+      "layout_variants": [
+        {"id": "penthouse_lux_a", "description": "Ultra-luxury with private spa complex"},
+        {"id": "penthouse_lux_b", "description": "Executive suite with private office"},
+        {"id": "penthouse_lux_c", "description": "Entertainer's paradise with chef's kitchen"}
+      ],
+      "target_demographics": ["ultra_wealthy", "celebrities", "business_moguls"],
+      "rent_range": {"min": 8000, "max": 20000}
+    }
+  },
+  "apartment_features": {
+    "standard_features": [
+      "hardwood_floors",
+      "central_heating",
+      "modern_lighting",
+      "window_blinds",
+      "basic_appliances"
+    ],
+    "luxury_upgrades": [
+      "marble_countertops",
+      "stainless_steel_appliances",
+      "in_unit_laundry",
+      "floor_to_ceiling_windows",
+      "smart_home_features",
+      "private_balcony",
+      "designer_finishes",
+      "custom_built_ins"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" load_steps=3 format=3 uid="uid://dk6n28s8hqu6h"]
+
+[ext_resource type="Texture2D" uid="uid://cmfuinhj52prs" path="res://assets/furniture/tables/giotto-c_coffee_table_2.png" id="1_dlwjt"]
+[ext_resource type="Texture2D" uid="uid://buf0ahs6fl5cg" path="res://assets/furniture/tables/giotto-c_coffee_table_3.png" id="2_f03qs"]
+
+[resource]
+resource_name = "Nickel_chrome.002"
+cull_mode = 2
+albedo_texture = ExtResource("1_dlwjt")
+metallic = 1.0
+metallic_texture = ExtResource("2_f03qs")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("2_f03qs")
+roughness_texture_channel = 1

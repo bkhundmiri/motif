@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3 uid="uid://bfe55kf7xoujn"]
+
+[ext_resource type="Script" uid="uid://b0l8eyo4vnegn" path="res://scripts/furniture/bed.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://b6uigehe3pqfx" path="res://assets/furniture/beds/bed.glb" id="2_r6ajx"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(1.4, 0.6, 2)
+
+[node name="BedModern" type="StaticBody3D"]
+script = ExtResource("1")
+furniture_id = "double_bed"
+furniture_type = "bed"
+placement_rules = Array[String](["against_wall", "center_room"])
+item_size = Vector3(1.4, 0.6, 2)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("BoxShape3D_1")
+
+[node name="InteractionArea" type="Area3D" parent="."]
+
+[node name="InteractionShape" type="CollisionShape3D" parent="InteractionArea"]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0.3, 0)
+shape = SubResource("BoxShape3D_1")
+
+[node name="bed_modern_simple" parent="." instance=ExtResource("2_r6ajx")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0, 0)

@@ -1,7 +1,7 @@
 [gd_scene load_steps=15 format=3 uid="uid://bnrbm8w21ns64"]
 
 [ext_resource type="Script" uid="uid://ne57t8se1j0c" path="res://scripts/characters/first_person_controller.gd" id="1_1q2kv"]
-[ext_resource type="PackedScene" uid="uid://cy4x7m8n1qaq2" path="res://scenes/items/bed.tscn" id="2_8j4k1"]
+[ext_resource type="PackedScene" uid="uid://cy4x7m8n1qaq2" path="res://scenes/furniture/bed_modern.tscn" id="2_8j4k1"]
 [ext_resource type="PackedScene" path="res://scenes/items/case_board.tscn" id="3_9k2j8"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1"]

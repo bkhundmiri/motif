@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://ildxmb2x0wii"]
+
+[ext_resource type="PackedScene" uid="uid://jk5gk7lcvkqe" path="res://assets/furniture/tables/giotto-c_coffee_table.glb" id="1_oos2d"]
+[ext_resource type="Script" uid="uid://ckospjhe1i7cw" path="res://scripts/furniture/table.gd" id="1_table_script"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(1.2, 0.4, 0.6)
+
+[node name="TableCoffeeModern" type="StaticBody3D"]
+script = ExtResource("1_table_script")
+furniture_id = "coffee_table"
+furniture_type = "table"
+placement_rules = Array[String](["center_room", "against_wall"])
+item_size = Vector3(1.2, 0.4, 0.6)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_1")
+
+[node name="giotto-c_coffee_table" parent="." instance=ExtResource("1_oos2d")]
+transform = Transform3D(0.007, 0, 0, 0, 0.007, 0, 0, 0, 0.007, 0, 0, 0)

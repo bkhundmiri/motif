@@ -1,0 +1,226 @@
+{
+  "city_grid_system": {
+    "total_area": {
+      "dimensions": {"width_km": 2.0, "height_km": 2.0},
+      "grid_resolution": {"block_size_m": 100},
+      "total_blocks": 400
+    },
+    "zoning_districts": {
+      "high_density_core": {
+        "location": "center",
+        "size_percentage": 0.15,
+        "description": "Downtown core with towers and high-rises",
+        "building_types": ["apartment_tower", "large_office_buildings", "mixed_use_towers"],
+        "building_density": "very_high",
+        "height_limits": {"min_floors": 12, "max_floors": 25},
+        "amenities": ["transit_hub", "major_commercial", "entertainment_district"]
+      },
+      "commercial_strips": {
+        "location": "arterial_streets",
+        "size_percentage": 0.20,
+        "description": "Commercial corridors with street-level retail",
+        "building_types": ["street_level_retail", "small_office_above_retail"],
+        "building_density": "medium",
+        "height_limits": {"min_floors": 1, "max_floors": 4},
+        "features": ["pedestrian_friendly", "parking", "transit_accessible"]
+      },
+      "medium_density_residential": {
+        "location": "surrounding_core",
+        "size_percentage": 0.35,
+        "description": "Mid-rise apartments and condos",
+        "building_types": ["mid_rise_residential", "small_apartment_buildings"],
+        "building_density": "medium",
+        "height_limits": {"min_floors": 3, "max_floors": 8},
+        "amenities": ["neighborhood_parks", "local_retail", "schools"]
+      },
+      "low_density_residential": {
+        "location": "outer_areas",
+        "size_percentage": 0.25,
+        "description": "Single-family homes and townhouses",
+        "building_types": ["single_family_home", "townhouse"],
+        "building_density": "low",
+        "height_limits": {"min_floors": 1, "max_floors": 3},
+        "features": ["tree_lined_streets", "yards", "neighborhood_character"]
+      },
+      "parks_open_space": {
+        "location": "distributed",
+        "size_percentage": 0.05,
+        "description": "Parks, plazas, and green spaces",
+        "features": ["central_park", "neighborhood_parks", "pocket_parks", "plaza_spaces"]
+      }
+    }
+  },
+  "street_network": {
+    "street_hierarchy": {
+      "main_arterial": {
+        "width_m": 12,
+        "lanes": 4,
+        "features": ["street_parking", "sidewalks", "bike_lanes", "transit_route"],
+        "building_setback_m": 3,
+        "commercial_frontage": true
+      },
+      "secondary_street": {
+        "width_m": 8,
+        "lanes": 2,
+        "features": ["street_parking", "sidewalks"],
+        "building_setback_m": 2,
+        "mixed_use": true
+      },
+      "residential_street": {
+        "width_m": 6,
+        "lanes": 2,
+        "features": ["street_parking", "sidewalks", "tree_canopy"],
+        "building_setback_m": 4,
+        "residential_only": true
+      }
+    },
+    "intersection_types": {
+      "major_intersection": {
+        "traffic_control": "traffic_light",
+        "pedestrian_features": ["crosswalks", "pedestrian_signals"],
+        "commercial_opportunity": "high"
+      },
+      "minor_intersection": {
+        "traffic_control": "stop_sign",
+        "pedestrian_features": ["crosswalks"],
+        "commercial_opportunity": "medium"
+      }
+    }
+  },
+  "city_districts": {
+    "downtown_core": {
+      "center_coordinates": {"x": 1000, "y": 1000},
+      "radius_m": 300,
+      "character": "Urban high-rise district",
+      "primary_buildings": [
+        {"type": "apartment_tower", "count": 4},
+        {"type": "office_tower", "count": 2},
+        {"type": "mixed_use_tower", "count": 2}
+      ],
+      "street_level": ["high_end_retail", "restaurants", "banks", "transit_station"],
+      "pedestrian_density": "very_high",
+      "npc_activity_level": "constant"
+    },
+    "commercial_corridor_north": {
+      "street_alignment": "north_south",
+      "length_m": 800,
+      "character": "Main shopping and dining street",
+      "building_lineup": [
+        {"type": "restaurant", "count": 8},
+        {"type": "retail_shop", "count": 12},
+        {"type": "service_business", "count": 6}
+      ],
+      "special_features": ["outdoor_dining", "street_trees", "wide_sidewalks"],
+      "npc_activity_patterns": {
+        "morning": "commuter_traffic",
+        "midday": "shopping_dining",
+        "evening": "entertainment"
+      }
+    },
+    "commercial_corridor_east": {
+      "street_alignment": "east_west",
+      "length_m": 600,
+      "character": "Professional services and local retail",
+      "building_lineup": [
+        {"type": "service_business", "count": 10},
+        {"type": "small_office", "count": 8},
+        {"type": "convenience_retail", "count": 4}
+      ]
+    },
+    "residential_neighborhood_west": {
+      "area_sqm": 400000,
+      "character": "Mid-rise apartment living",
+      "building_distribution": [
+        {"type": "mid_rise_residential", "count": 8},
+        {"type": "small_apartment_building", "count": 4}
+      ],
+      "amenities": ["neighborhood_park", "elementary_school", "corner_stores"],
+      "npc_demographics": ["families", "young_professionals", "retirees"]
+    },
+    "residential_neighborhood_south": {
+      "area_sqm": 500000,
+      "character": "Single-family homes and townhouses",
+      "building_distribution": [
+        {"type": "single_family_home", "count": 60},
+        {"type": "townhouse", "count": 24}
+      ],
+      "amenities": ["community_center", "playground", "local_park"],
+      "npc_demographics": ["families", "established_professionals"]
+    }
+  },
+  "city_services": {
+    "transportation": {
+      "transit_stops": [
+        {"type": "bus_stop", "locations": "major_intersections", "count": 16},
+        {"type": "transit_station", "locations": "downtown_core", "count": 1}
+      ],
+      "parking": {
+        "street_parking": "throughout_commercial_areas",
+        "parking_structures": [
+          {"location": "downtown_core", "capacity": 200},
+          {"location": "commercial_district", "capacity": 100}
+        ]
+      }
+    },
+    "utilities": {
+      "power_grid": "underground_in_core_overhead_residential",
+      "water_sewer": "city_infrastructure",
+      "communications": "fiber_optic_backbone"
+    },
+    "public_amenities": {
+      "parks": [
+        {"type": "central_park", "size_sqm": 10000, "location": "downtown_adjacent"},
+        {"type": "neighborhood_park", "size_sqm": 2000, "count": 4},
+        {"type": "pocket_park", "size_sqm": 500, "count": 8}
+      ],
+      "community_services": [
+        {"type": "police_station", "location": "downtown"},
+        {"type": "fire_station", "location": "central"},
+        {"type": "library", "location": "downtown"},
+        {"type": "community_center", "location": "residential_west"}
+      ]
+    }
+  },
+  "npc_integration": {
+    "population_distribution": {
+      "total_estimated_npcs": 2400,
+      "breakdown": {
+        "downtown_residents": 400,
+        "apartment_residents": 800,
+        "house_residents": 600,
+        "workers_commuting_in": 400,
+        "service_workers": 200
+      }
+    },
+    "daily_flow_patterns": {
+      "morning_rush": {
+        "time": "07:00-09:00",
+        "movement": "residential_to_commercial_office",
+        "activity_hubs": ["transit_station", "coffee_shops", "main_streets"]
+      },
+      "midday": {
+        "time": "11:00-14:00",
+        "movement": "local_errands_shopping",
+        "activity_hubs": ["retail_stores", "restaurants", "services"]
+      },
+      "evening_rush": {
+        "time": "17:00-19:00",
+        "movement": "office_to_residential",
+        "activity_hubs": ["transit_station", "grocery_stores", "restaurants"]
+      },
+      "nighttime": {
+        "time": "20:00-06:00",
+        "movement": "entertainment_to_residential",
+        "activity_hubs": ["restaurants", "residential_areas"]
+      }
+    },
+    "employment_distribution": {
+      "office_workers": 800,
+      "retail_service": 300,
+      "restaurant_hospitality": 200,
+      "building_maintenance": 100,
+      "public_services": 50,
+      "unemployed_retired": 950
+    }
+  }
+}
